@@ -18,6 +18,8 @@ export interface Database {
           productos_activos: string[]
           edad_bebe_meses: number | null
           nombre_bebe: string | null
+          hijo_activo_id: string | null
+          monto_pago: number | null
           created_at: string
           updated_at: string
         }
@@ -29,18 +31,35 @@ export interface Database {
           productos_activos?: string[]
           edad_bebe_meses?: number | null
           nombre_bebe?: string | null
+          hijo_activo_id?: string | null
+          monto_pago?: number | null
           created_at?: string
           updated_at?: string
         }
         Update: {
-          id?: string
-          email?: string
           nombre?: string | null
-          fecha_compra?: string
-          productos_activos?: string[]
-          edad_bebe_meses?: number | null
-          nombre_bebe?: string | null
+          hijo_activo_id?: string | null
           updated_at?: string
+        }
+      }
+      hijos: {
+        Row: {
+          id: string
+          usuario_id: string
+          nombre: string
+          fecha_nacimiento: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          usuario_id: string
+          nombre: string
+          fecha_nacimiento: string
+          created_at?: string
+        }
+        Update: {
+          nombre?: string
+          fecha_nacimiento?: string
         }
       }
       sesiones: {
@@ -73,6 +92,7 @@ export interface Database {
         Row: {
           id: string
           usuario_id: string
+          hijo_id: string | null
           alimento: string
           fecha_introduccion: string
           reaccion: 'ninguna' | 'leve' | 'moderada'
@@ -83,6 +103,7 @@ export interface Database {
         Insert: {
           id?: string
           usuario_id: string
+          hijo_id?: string | null
           alimento: string
           fecha_introduccion: string
           reaccion: 'ninguna' | 'leve' | 'moderada'
@@ -102,18 +123,44 @@ export interface Database {
         Row: {
           id: string
           usuario_id: string
-          consulta: string
+          query: string
           respuesta: string
+          edad_meses: number | null
           created_at: string
         }
         Insert: {
           id?: string
           usuario_id: string
-          consulta: string
+          query: string
           respuesta: string
+          edad_meses?: number | null
           created_at?: string
         }
         Update: never
+      }
+      menus_semanales: {
+        Row: {
+          id: string
+          usuario_id: string
+          hijo_id: string | null
+          semana: string
+          edad_meses: number | null
+          contenido: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          usuario_id: string
+          hijo_id?: string | null
+          semana: string
+          edad_meses?: number | null
+          contenido: Json
+          created_at?: string
+        }
+        Update: {
+          contenido?: Json
+          edad_meses?: number | null
+        }
       }
     }
     Views: Record<string, never>

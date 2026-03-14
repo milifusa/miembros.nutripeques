@@ -69,9 +69,10 @@ export default function RecursosPage() {
       {/* ─── HEADER ─── */}
       <header style={{ background: 'white', boxShadow: '0 2px 12px rgba(0,0,0,.08)', position: 'sticky', top: 0, zIndex: 999, fontFamily: "'Outfit',sans-serif" }}>
         <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 90 }}>
-          <a href="/">
+          <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none' }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/assets/logo.png" alt="NutriPeques Pro" style={{ height: 70, objectFit: 'contain' }} />
+            <span style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 20, fontWeight: 600, color: '#1f2937' }}>Método NutriPeques</span>
           </a>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <a href="/" style={{ textDecoration: 'none', color: '#6b7280', fontSize: 14, fontWeight: 500 }}>Inicio</a>

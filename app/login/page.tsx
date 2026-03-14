@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import Image from 'next/image'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -30,7 +29,8 @@ export default function LoginPage() {
       return
     }
 
-    router.push('/dashboard')
+    const dest = email.trim().toLowerCase() === 'nutripequespro@gmail.com' ? '/admin' : '/dashboard'
+    router.push(dest)
     router.refresh()
   }
 

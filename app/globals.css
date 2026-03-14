@@ -24,3 +24,51 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ── NutriPeques responsive dashboard ── */
+@media (max-width: 640px) {
+  /* Header dashboard: reduce height, hide title text */
+  .np-dash-header { height: 56px !important; padding: 0 14px !important; }
+  .np-dash-header-title { display: none !important; }
+  .np-dash-header img { height: 40px !important; }
+  .np-dash-header-actions { gap: 8px !important; }
+
+  /* Main content: reduce padding */
+  .np-dash-main { padding: 20px 14px !important; }
+
+  /* Hero saludo card */
+  .np-dash-hero { padding: 20px 18px !important; border-radius: 18px !important; }
+  .np-dash-hero h1 { font-size: 24px !important; }
+
+  /* Section cards: 1 column on mobile */
+  .np-section-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
+
+  /* Banner teal: stack on mobile */
+  .np-dash-banner { flex-direction: column !important; gap: 10px !important; padding: 18px 20px !important; }
+
+  /* Buscador IA form: stack input + button */
+  .np-buscador-form { flex-direction: column !important; }
+  .np-buscador-form input { border-radius: 14px !important; }
+  .np-buscador-form button { border-radius: 14px !important; width: 100%; }
+
+  /* Menú semanal grid: 1 col on mobile */
+  .np-menu-grid { grid-template-columns: 1fr !important; }
+
+  /* Recursos grid */
+  .np-recursos-grid { grid-template-columns: 1fr !important; }
+
+  /* Admin table: allow horizontal scroll */
+  .np-admin-table-wrap { overflow-x: auto !important; }
+
+  /* Result card prep grid */
+  .np-dash-prep-grid { grid-template-columns: 1fr !important; }
+
+  /* Formularios de 2 columnas → 1 columna en mobile */
+  .np-form-2col { grid-template-columns: 1fr !important; }
+
+  /* Buscador IA: título del resultado */
+  .np-buscador-result-title { font-size: 20px !important; }
+
+  /* MenuSemanal: tab buttons más compactos */
+  .np-menu-tab { padding: 6px 12px !important; font-size: 13px !important; }
+}

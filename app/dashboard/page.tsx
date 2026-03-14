@@ -1,123 +1,112 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import LogoutButton from '@/components/ui/LogoutButton'
-
-const SECCIONES = [
-  {
-    icon: '📅',
-    titulo: 'Menú semanal',
-    descripcion: 'Menú adaptado a la edad de tu bebé',
-    href: '/dashboard/menu',
-    color: 'bg-orange-50 border-orange-200',
-  },
-  {
-    icon: '🔍',
-    titulo: 'Buscador IA',
-    descripcion: 'Consulta cualquier alimento con IA',
-    href: '/dashboard/buscar',
-    color: 'bg-teal-50 border-teal-200',
-  },
-  {
-    icon: '📚',
-    titulo: 'Mis recursos',
-    descripcion: 'PDFs y materiales de tu compra',
-    href: '/dashboard/recursos',
-    color: 'bg-purple-50 border-purple-200',
-  },
-  {
-    icon: '📓',
-    titulo: 'Bitácora del bebé',
-    descripcion: 'Registra los alimentos introducidos',
-    href: '/dashboard/bitacora',
-    color: 'bg-pink-50 border-pink-200',
-  },
-]
+import SeccionCards from './SeccionCards'
+import SelectorHijo from './SelectorHijo'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
+  const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: usuarioRaw } = await supabase
-    .from('usuarios')
-    .select('nombre, nombre_bebe, edad_bebe_meses')
-    .eq('id', user.id)
-    .maybeSingle()
+  const [{ data: usuarioRaw }, { data: hijosRaw }] = await Promise.all([
+    supabase
+      .from('usuarios')
+      .select('nombre')
+      .eq('id', user.id)
+      .maybeSingle(),
+    supabase
+      .from('hijos')
+      .select('id, nombre, fecha_nacimiento')
+      .eq('usuario_id', user.id)
+      .order('created_at', { ascending: true }),
+  ])
 
-  const usuario = usuarioRaw as { nombre: string | null; nombre_bebe: string | null; edad_bebe_meses: number | null } | null
+  const usuario = usuarioRaw as { nombre: string | null } | null
+  const hijos = (hijosRaw ?? []) as { id: string; nombre: string; fecha_nacimiento: string }[]
 
-  const nombre = usuario?.nombre?.split(' ')[0] ?? 'mamá'
-  const nombreBebe = usuario?.nombre_bebe
-  const edadBebe = usuario?.edad_bebe_meses
+  const nombre = usuario?.nombre?.split(' ')[0] ?? user.email?.split('@')[0] ?? 'mamá'
+  const cookieStore = await cookies()
+  const hijoActivoId = cookieStore.get('hijo_activo_id')?.value ?? null
+  const hijoActivo = hijos.find(h => h.id === hijoActivoId) ?? hijos[0] ?? null
+
+  // Calcular edad del hijo activo
+  function calcularMeses(fecha: string): number {
+    const nac = new Date(fecha)
+    const hoy = new Date()
+    let m = (hoy.getFullYear() - nac.getFullYear()) * 12 + (hoy.getMonth() - nac.getMonth())
+    if (hoy.getDate() < nac.getDate()) m--
+    return Math.max(0, m)
+  }
+
+  const mesesActivo = hijoActivo ? calcularMeses(hijoActivo.fecha_nacimiento) : null
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-orange-50 to-teal-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm px-4 py-4">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">🥕</span>
-            <span className="font-bold text-gray-800">NutriPeques</span>
-          </div>
-          <LogoutButton />
-        </div>
-      </header>
+    <>
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fredoka:wght@400;500;600&display=swap" rel="stylesheet" />
 
-      <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
-        {/* Saludo */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm">
-          <h1 className="text-2xl font-bold text-gray-800">
-            Hola {nombre} 👋
-          </h1>
-          {nombreBebe && edadBebe ? (
-            <p className="text-gray-500 mt-1">
-              {nombreBebe} tiene {edadBebe} meses — contenido adaptado para esta etapa
-            </p>
-          ) : (
-            <p className="text-gray-500 mt-1">
-              Bienvenida al área exclusiva de miembros.{' '}
-              <a href="/dashboard/perfil" className="text-teal-500 underline">
-                Configura el perfil de tu bebé
-              </a>
-            </p>
+      <div style={{ minHeight: '100vh', background: '#f8fafc', fontFamily: "'Outfit',sans-serif" }}>
+
+        {/* Header */}
+        <header className="np-dash-header" style={{ background: 'white', borderBottom: '1px solid #e5e7eb', padding: '0 24px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 100 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/assets/logo.png" alt="NutriPeques" style={{ height: 52, objectFit: 'contain' }} />
+            <span className="np-dash-header-title" style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 18, fontWeight: 600, color: '#1f2937' }}>Método NutriPeques</span>
+          </div>
+          <div className="np-dash-header-actions" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <a href="/dashboard/perfil" style={{ color: '#6b7280', fontSize: 14, textDecoration: 'none', fontWeight: 500 }}>👤 Perfil</a>
+            <LogoutButton />
+          </div>
+        </header>
+
+        <main className="np-dash-main" style={{ maxWidth: 720, margin: '0 auto', padding: '32px 20px' }}>
+
+          {/* Saludo */}
+          <div className="np-dash-hero" style={{ background: 'linear-gradient(135deg,#F4A340,#E8821A)', borderRadius: 24, padding: '28px 32px', marginBottom: 20, color: 'white', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', right: -20, top: -20, fontSize: 100, opacity: .12, lineHeight: 1 }}>🥕</div>
+            <p style={{ fontSize: 13, fontWeight: 700, opacity: .85, letterSpacing: 1, marginBottom: 6 }}>ÁREA EXCLUSIVA DE MIEMBROS</p>
+            <h1 style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 30, fontWeight: 600, margin: '0 0 6px' }}>
+              ¡Hola, {nombre}! 👋
+            </h1>
+            {hijoActivo && mesesActivo !== null ? (
+              <p style={{ margin: 0, opacity: .9, fontSize: 15 }}>
+                {hijoActivo.nombre} tiene <strong>{mesesActivo} meses</strong> — contenido adaptado para esta etapa 🌿
+              </p>
+            ) : (
+              <p style={{ margin: 0, opacity: .9, fontSize: 15 }}>
+                Bienvenida al Método NutriPeques.{' '}
+                <a href="/dashboard/perfil" style={{ color: 'white', fontWeight: 700, textDecoration: 'underline' }}>
+                  Agrega el perfil de tu bebé →
+                </a>
+              </p>
+            )}
+          </div>
+
+          {/* Selector de hijo (si hay más de uno o al menos uno) */}
+          {hijos.length > 0 && (
+            <SelectorHijo hijos={hijos} hijoActivoId={hijoActivo?.id ?? null} />
           )}
-        </div>
 
-        {/* Accesos rápidos */}
-        <div>
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-            Tu contenido
-          </h2>
-          <div className="grid grid-cols-2 gap-3">
-            {SECCIONES.map((seccion) => (
-              <a
-                key={seccion.href}
-                href={seccion.href}
-                className={`${seccion.color} border rounded-2xl p-5 hover:shadow-md transition-shadow`}
-              >
-                <span className="text-3xl block mb-2">{seccion.icon}</span>
-                <p className="font-semibold text-gray-800 text-sm">{seccion.titulo}</p>
-                <p className="text-gray-500 text-xs mt-1">{seccion.descripcion}</p>
-              </a>
-            ))}
+          {/* Secciones */}
+          <p style={{ fontSize: 12, fontWeight: 700, color: '#9ca3af', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 14 }}>Tu contenido</p>
+          <SeccionCards />
+
+          {/* Banner */}
+          <div className="np-dash-banner" style={{ background: 'linear-gradient(135deg,#0D9488,#0F766E)', borderRadius: 20, padding: '22px 26px', color: 'white', display: 'flex', alignItems: 'center', gap: 20 }}>
+            <div style={{ fontSize: 44, flexShrink: 0 }}>🎉</div>
+            <div>
+              <p style={{ fontSize: 12, fontWeight: 700, opacity: .75, letterSpacing: 1, margin: '0 0 4px' }}>NOVEDAD</p>
+              <p style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 18, fontWeight: 600, margin: '0 0 4px' }}>Bienvenida al Método NutriPeques</p>
+              <p style={{ fontSize: 14, opacity: .9, margin: 0 }}>Explora el menú semanal y el buscador IA — búsquedas ilimitadas 🌿</p>
+            </div>
           </div>
-        </div>
 
-        {/* Novedades */}
-        <div className="bg-teal-500 text-white rounded-2xl p-6">
-          <p className="text-xs font-semibold uppercase tracking-wide opacity-75 mb-1">
-            Novedad
-          </p>
-          <p className="font-bold text-lg">Bienvenida al Método NutriPeques</p>
-          <p className="text-sm opacity-90 mt-1">
-            Explora el menú semanal y el buscador IA — sin límites de búsqueda.
-          </p>
-        </div>
+        </main>
       </div>
-    </main>
+    </>
   )
 }
