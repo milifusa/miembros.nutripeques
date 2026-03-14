@@ -75,9 +75,9 @@ export async function POST(request: NextRequest) {
     if (insertError) console.error('[webhook] insert usuarios error:', insertError)
   }
 
-  // Generar link para que el usuario cree su contraseña
+  // Generar magic link para acceso directo al dashboard
   const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
-    type: 'recovery',
+    type: 'magiclink',
     email,
     options: { redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard` },
   })
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
         </div>
 
         <p style="color:#6b7280;font-size:13px;text-align:center;margin-top:24px;">
-          ¿Problemas? Escríbenos a <a href="mailto:hola@nutripequespro.com" style="color:#E8821A;">hola@nutripequespro.com</a>
+          ¿Problemas? <a href="https://wa.me/5212225067864" style="color:#E8821A;font-weight:600;">Escríbenos por WhatsApp 💬</a>
         </p>
       </div>
     `,

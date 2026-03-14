@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
@@ -10,6 +10,39 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    const supabase = createClient()
+
+    // Magic link: tokens en el hash de la URL
+    const hash = window.location.hash
+    const params = new URLSearchParams(hash.replace('#', ''))
+    const accessToken = params.get('access_token')
+    const refreshToken = params.get('refresh_token')
+
+    if (accessToken && refreshToken) {
+      supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+        .then(({ data: { session } }) => {
+          if (session) {
+            const dest = session.user.email?.toLowerCase() === 'nutripequespro@gmail.com'
+              ? '/admin'
+              : '/configurar-contrasena'
+            router.replace(dest)
+          }
+        })
+      return
+    }
+
+    // Sesión ya activa → dashboard directamente
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        const dest = session.user.email?.toLowerCase() === 'nutripequespro@gmail.com'
+          ? '/admin'
+          : '/dashboard'
+        router.replace(dest)
+      }
+    })
+  }, [router])
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -101,7 +134,7 @@ export default function LoginPage() {
           <p className="text-center text-sm text-gray-500 mt-6">
             ¿Problemas para acceder?{' '}
             <a
-              href="https://nutripequespro.com/soporte"
+              href="https://wa.me/5212225067864"
               className="text-teal-500 hover:underline"
               target="_blank"
               rel="noreferrer"

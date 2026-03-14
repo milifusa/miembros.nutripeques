@@ -30,7 +30,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Rutas públicas — no requieren sesión
-  const publicPaths = ['/', '/login', '/recursos', '/pago', '/api/buscar', '/api/checkout', '/api/stripe-webhook']
+  const publicPaths = ['/', '/login', '/configurar-contrasena', '/recursos', '/pago', '/api/buscar', '/api/checkout', '/api/stripe-webhook']
   const isPublic = publicPaths.some((path) =>
     path === '/' ? pathname === '/' : pathname.startsWith(path)
   )
