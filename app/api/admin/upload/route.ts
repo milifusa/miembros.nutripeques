@@ -25,11 +25,26 @@ export async function POST(req: NextRequest) {
   const fileName = `${carpeta}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
 
   const admin = createAdminClient()
+
+  // Crear bucket si no existe
+  const { data: buckets } = await admin.storage.listBuckets()
+  const bucketExiste = buckets?.some(b => b.name === 'recursos')
+  if (!bucketExiste) {
+    const { error: createErr } = await admin.storage.createBucket('recursos', { public: true })
+    if (createErr) {
+      console.error('[upload] error creando bucket:', createErr)
+      return NextResponse.json({ error: 'No se pudo crear el bucket: ' + createErr.message }, { status: 500 })
+    }
+  }
+
   const { data, error } = await admin.storage
     .from('recursos')
     .upload(fileName, buffer, { contentType: file.type, upsert: false })
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('[upload] error subiendo archivo:', error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
 
   const { data: { publicUrl } } = admin.storage.from('recursos').getPublicUrl(data.path)
   return NextResponse.json({ url: publicUrl })
