@@ -1,87 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import LogoutButton from '@/components/ui/LogoutButton'
 import RecursoCard from './RecursoCard'
 
-type Recurso = {
-  titulo: string
-  descripcion: string
-  emoji: string
-  categoria: string
-  href: string
-  badge?: string
-}
-
-const RECURSOS: Recurso[] = [
-  {
-    categoria: 'Guías esenciales',
-    emoji: '📘',
-    titulo: 'Guía completa de inicio AC',
-    descripcion: 'Todo lo que necesitas saber para empezar la alimentación complementaria de manera segura.',
-    href: '/recursos/guia-inicio-ac.pdf',
-    badge: 'Esencial',
-  },
-  {
-    categoria: 'Guías esenciales',
-    emoji: '🥕',
-    titulo: 'Primeros alimentos por etapa',
-    descripcion: 'Qué ofrecer mes a mes, texturas, cantidades y cómo preparar cada alimento.',
-    href: '/recursos/primeros-alimentos.pdf',
-  },
-  {
-    categoria: 'Guías esenciales',
-    emoji: '⚠️',
-    titulo: 'Alimentos a evitar y por qué',
-    descripcion: 'Lista de alimentos prohibidos antes del año: miel, sal, azúcar, leche de vaca y más.',
-    href: '/recursos/alimentos-evitar.pdf',
-  },
-  {
-    categoria: 'Nutrición',
-    emoji: '🩸',
-    titulo: 'Hierro y vitamina C en la AC',
-    descripcion: 'Cómo prevenir anemia, fuentes de hierro, combinaciones que potencian su absorción.',
-    href: '/recursos/hierro-vitamina-c.pdf',
-  },
-  {
-    categoria: 'Nutrición',
-    emoji: '🐟',
-    titulo: 'Omega-3 para el desarrollo cerebral',
-    descripcion: 'Fuentes de omega-3 adecuadas para bebés y cómo incluirlas en la dieta diaria.',
-    href: '/recursos/omega-3-bebes.pdf',
-  },
-  {
-    categoria: 'BLW',
-    emoji: '🤲',
-    titulo: 'Manual de BLW paso a paso',
-    descripcion: 'Baby Led Weaning explicado de forma práctica: postura, tamaños, señales de hambre.',
-    href: '/recursos/manual-blw.pdf',
-    badge: 'Nuevo',
-  },
-  {
-    categoria: 'BLW',
-    emoji: '🍽️',
-    titulo: 'Texturas y cortes seguros por edad',
-    descripcion: 'Guía visual de cómo cortar y preparar cada alimento para evitar atragantamientos.',
-    href: '/recursos/texturas-cortes.pdf',
-  },
-  {
-    categoria: 'Recetas',
-    emoji: '🍲',
-    titulo: '30 recetas 6-12 meses',
-    descripcion: 'Recetas simples, nutritivas y sin sal para los primeros meses de alimentación.',
-    href: '/recursos/recetas-6-12-meses.pdf',
-  },
-  {
-    categoria: 'Recetas',
-    emoji: '🥞',
-    titulo: '20 recetas finger foods',
-    descripcion: 'Recetas de trozos para que tu bebé se alimente solo: tortitas, palitos, bolitas.',
-    href: '/recursos/recetas-finger-foods.pdf',
-  },
-]
-
-const categorias = [...new Set(RECURSOS.map(r => r.categoria))]
+type Categoria = { id: string; nombre: string; icono: string; orden: number }
+type Recurso = { id: string; categoria_id: string | null; titulo: string; descripcion: string | null; pdf_url: string; imagen_url: string | null; orden: number }
 
 export default async function RecursosPage() {
   const supabase = await createClient()
@@ -90,12 +15,23 @@ export default async function RecursosPage() {
 
   const { data: usuarioRaw } = await supabase
     .from('usuarios')
-    .select('nombre, productos_activos')
+    .select('nombre')
     .eq('id', user.id)
     .maybeSingle()
 
-  const usuario = usuarioRaw as { nombre: string | null; productos_activos: string[] } | null
-  const nombre = usuario?.nombre?.split(' ')[0] ?? user.email?.split('@')[0] ?? 'mamá'
+  const nombre = (usuarioRaw as { nombre: string | null } | null)?.nombre?.split(' ')[0]
+    ?? user.email?.split('@')[0] ?? 'mamá'
+
+  // Leer categorías y recursos con admin client (bypasa RLS)
+  const admin = createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [{ data: catData }, { data: recData }] = await Promise.all([
+    (admin as any).from('categorias_recursos').select('*').order('orden'),
+    (admin as any).from('recursos').select('*').order('orden'),
+  ])
+
+  const categorias: Categoria[] = catData ?? []
+  const recursos: Recurso[] = recData ?? []
 
   return (
     <>
@@ -128,7 +64,6 @@ export default async function RecursosPage() {
             </p>
           </div>
 
-          {/* Banner acceso */}
           <div style={{ background: 'linear-gradient(135deg,#0D9488,#0F766E)', borderRadius: 20, padding: '20px 24px', color: 'white', display: 'flex', alignItems: 'center', gap: 16, marginBottom: 32 }}>
             <span style={{ fontSize: 36, flexShrink: 0 }}>🔐</span>
             <div>
@@ -137,29 +72,58 @@ export default async function RecursosPage() {
             </div>
           </div>
 
+          {categorias.length === 0 && recursos.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '60px 20px', color: '#9ca3af' }}>
+              <p style={{ fontSize: 40, margin: '0 0 12px' }}>📭</p>
+              <p style={{ fontSize: 16, fontWeight: 600 }}>Pronto habrá recursos disponibles</p>
+            </div>
+          )}
+
           {/* Recursos por categoría */}
           {categorias.map(cat => {
-            const items = RECURSOS.filter(r => r.categoria === cat)
+            const items = recursos.filter(r => r.categoria_id === cat.id)
+            if (items.length === 0) return null
             return (
-              <div key={cat} style={{ marginBottom: 32 }}>
+              <div key={cat.id} style={{ marginBottom: 32 }}>
                 <p style={{ fontSize: 12, fontWeight: 700, color: '#9ca3af', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 14 }}>
-                  {cat}
+                  {cat.icono} {cat.nombre}
                 </p>
                 <div className="np-recursos-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(260px,1fr))', gap: 14 }}>
                   {items.map(r => (
                     <RecursoCard
-                      key={r.titulo}
+                      key={r.id}
                       titulo={r.titulo}
-                      descripcion={r.descripcion}
-                      emoji={r.emoji}
-                      href={r.href}
-                      badge={r.badge}
+                      descripcion={r.descripcion ?? ''}
+                      emoji={cat.icono}
+                      href={r.pdf_url}
+                      imagenUrl={r.imagen_url ?? undefined}
                     />
                   ))}
                 </div>
               </div>
             )
           })}
+
+          {/* Recursos sin categoría */}
+          {recursos.filter(r => !r.categoria_id).length > 0 && (
+            <div style={{ marginBottom: 32 }}>
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#9ca3af', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 14 }}>
+                📄 Otros recursos
+              </p>
+              <div className="np-recursos-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(260px,1fr))', gap: 14 }}>
+                {recursos.filter(r => !r.categoria_id).map(r => (
+                  <RecursoCard
+                    key={r.id}
+                    titulo={r.titulo}
+                    descripcion={r.descripcion ?? ''}
+                    emoji="📄"
+                    href={r.pdf_url}
+                    imagenUrl={r.imagen_url ?? undefined}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
         </main>
       </div>

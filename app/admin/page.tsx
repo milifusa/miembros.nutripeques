@@ -126,7 +126,15 @@ export default async function AdminPage() {
               </h1>
               <p style={{ color: '#6b7280', margin: 0, fontSize: 15 }}>Hola, Liliana 👋 Aquí tienes el resumen de tu comunidad</p>
             </div>
-            <NuevoUsuario />
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <a
+                href="/admin/recursos"
+                style={{ background: '#7C3AED', color: 'white', textDecoration: 'none', fontWeight: 600, fontSize: 14, padding: '9px 18px', borderRadius: 12, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              >
+                📚 Gestionar recursos
+              </a>
+              <NuevoUsuario />
+            </div>
           </div>
 
           {/* Stats */}

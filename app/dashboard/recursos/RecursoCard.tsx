@@ -6,12 +6,14 @@ export default function RecursoCard({
   emoji,
   href,
   badge,
+  imagenUrl,
 }: {
   titulo: string
   descripcion: string
   emoji: string
   href: string
   badge?: string
+  imagenUrl?: string
 }) {
   return (
     <a
@@ -45,7 +47,11 @@ export default function RecursoCard({
           {badge}
         </span>
       )}
-      <div style={{ fontSize: 32 }}>{emoji}</div>
+      {imagenUrl
+        // eslint-disable-next-line @next/next/no-img-element
+        ? <img src={imagenUrl} alt={titulo} style={{ width: '100%', height: 120, objectFit: 'cover', borderRadius: 10 }} />
+        : <div style={{ fontSize: 32 }}>{emoji}</div>
+      }
       <div>
         <p style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 16, fontWeight: 600, color: '#1f2937', margin: '0 0 4px' }}>
           {titulo}
