@@ -2,15 +2,11 @@
 
 import { useEffect, useState } from 'react'
 
+// Fecha fija de fin de promoción — cambia esto cuando lances una nueva promo
+const PROMO_END = new Date('2026-03-31T23:59:59-06:00').getTime()
+
 function getEndTime() {
-  const key = 'np_countdown_end'
-  if (typeof window === 'undefined') return Date.now() + 24 * 60 * 60 * 1000
-  let end = Number(localStorage.getItem(key))
-  if (!end || end < Date.now()) {
-    end = Date.now() + 23 * 60 * 60 * 1000 + 59 * 60 * 1000 + 59 * 1000
-    localStorage.setItem(key, String(end))
-  }
-  return end
+  return PROMO_END
 }
 
 export function UrgencyCountdown() {

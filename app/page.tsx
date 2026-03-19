@@ -78,6 +78,8 @@ export default async function Home() {
           .np-header-title { display: none !important; }
           .np-header { height: 60px !important; top: 36px !important; }
           .np-header img { height: 46px !important; }
+          .np-hero-emotional { grid-template-columns: 1fr !important; }
+          .np-hero-emotional-photo { max-width: 280px !important; margin: 0 auto; }
           .np-guia-grid { grid-template-columns: 1fr !important; }
           .np-guia-grid > div:first-child { max-width: 160px; margin: 0 auto; }
           .np-liliana-grid { grid-template-columns: 1fr !important; }
@@ -136,6 +138,66 @@ export default async function Home() {
           </div>
         </div>
       </header>
+
+      {/* ─── HERO EMOCIONAL ─── */}
+      <section className="np-hero-section" style={{ background: 'linear-gradient(150deg,#FFF7ED 0%,#CCFBF1 60%,#FFFBF5 100%)', padding: '60px 0 50px', fontFamily: "'Outfit',sans-serif" }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 20px' }}>
+          <div className="np-hero-emotional" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, alignItems: 'center' }}>
+            {/* Foto */}
+            <div className="np-hero-emotional-photo" style={{ textAlign: 'center', position: 'relative' }}>
+              <div style={{ position: 'relative', display: 'inline-block' }}>
+                <div style={{ position: 'absolute', inset: -6, borderRadius: '40% 60% 55% 45% / 45% 45% 55% 55%', background: 'linear-gradient(135deg,#F4A340,#0d9488)', opacity: .18, zIndex: 0 }} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/assets/hero.jpg"
+                  alt="Liliana — Nutrióloga pediátrica NutriPeques"
+                  style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 420, borderRadius: '40% 60% 55% 45% / 45% 45% 55% 55%', objectFit: 'cover', aspectRatio: '4/5', boxShadow: '0 24px 64px rgba(232,130,26,.25)' }}
+                  onError={(e) => { (e.target as HTMLImageElement).src = '/assets/perfil.jpg'; (e.target as HTMLImageElement).style.borderRadius = '50%'; (e.target as HTMLImageElement).style.maxWidth = '320px'; }}
+                />
+                <div style={{ position: 'absolute', bottom: 16, right: -16, zIndex: 2, background: 'white', borderRadius: 20, padding: '10px 18px', boxShadow: '0 8px 24px rgba(0,0,0,.12)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 24 }}>👶</span>
+                  <div>
+                    <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#1f2937' }}>+100k familias</p>
+                    <p style={{ margin: 0, fontSize: 11, color: '#6b7280' }}>confían en NutriPeques</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* Texto */}
+            <div>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'white', borderRadius: 50, padding: '6px 18px', boxShadow: '0 4px 16px rgba(0,0,0,.08)', marginBottom: 20 }}>
+                <span style={{ fontSize: 16 }}>🥄</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: '#0d9488', letterSpacing: '.5px' }}>MÉTODO NUTRIPEQUES · PLATAFORMA OFICIAL</span>
+              </div>
+              <h1 style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 'clamp(28px,4vw,48px)', fontWeight: 700, color: '#1f2937', lineHeight: 1.2, margin: '0 0 8px' }}>
+                Deja de improvisar<br />
+                qué darle a tu bebé
+              </h1>
+              <p style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 'clamp(17px,2.2vw,22px)', color: '#E8821A', fontWeight: 600, lineHeight: 1.4, margin: '0 0 20px' }}>
+                Menús listos, buscador IA y guías de nutrióloga — todo en un solo lugar 🥄
+              </p>
+              <p style={{ fontSize: 16, color: '#6b7280', lineHeight: 1.75, margin: '0 0 28px' }}>
+                Soy <strong style={{ color: '#1f2937' }}>Liliana</strong>, nutrióloga pediátrica. Creé esta plataforma para que sepas exactamente qué, cómo y cuándo darle a tu bebé — <strong style={{ color: '#0d9488' }}>sin buscar en Google, sin dudar, sin estrés</strong>.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 32 }}>
+                {['Menú semanal listo — sin improvisar cada día', 'Buscador IA: cualquier alimento, al instante', 'Guías PDF descargables con todo el método'].map((item, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'linear-gradient(135deg,#0d9488,#0f766e)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <span style={{ fontSize: 15, color: '#374151', fontWeight: 500 }}>{item}</span>
+                  </div>
+                ))}
+              </div>
+              <a href={CHECKOUT_URL}
+                style={{ display: 'inline-block', background: 'linear-gradient(135deg,#F4A340,#E8821A)', color: 'white', padding: '18px 40px', borderRadius: 50, fontFamily: "'Fredoka',sans-serif", fontSize: 20, fontWeight: 700, textDecoration: 'none', boxShadow: '0 8px 32px rgba(232,130,26,.4)', letterSpacing: '.3px' }}>
+                Quiero acceso ahora — {PRECIO}
+              </a>
+              <p style={{ margin: '12px 0 0', fontSize: 13, color: '#9ca3af' }}>Precio normal {PRECIO_TACHADO} · Pago único · Acceso de por vida</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* ─── HERO — Buscador IA GRATUITO ─── */}
       <section style={{ background: 'linear-gradient(160deg,#FFFBF5 0%,#CCFBF1 50%,#FFF7ED 100%)', padding: '50px 0 40px', fontFamily: "'Outfit',sans-serif" }}>
@@ -442,23 +504,41 @@ export default async function Home() {
         <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 20px' }}>
           <h2 style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 'clamp(24px,3.5vw,38px)', textAlign: 'center', marginBottom: 8, color: '#1f2937' }}>💬 Lo que dicen las mamás</h2>
           <p style={{ textAlign: 'center', color: '#6b7280', fontSize: 16, marginBottom: 36 }}>+100k familias nos siguen en redes — esto es lo que viven ellas:</p>
+          {/* Reemplaza estas imágenes con capturas reales de WhatsApp/DMs */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(300px,1fr))', gap: 20, marginBottom: 40 }}>
             {[
-              ['El buscador IA me cambió la vida. Antes de comprar en el súper consulto qué tan seguros son los alimentos para Lucía. ¡Y el menú semanal es un salvavidas total!', 'María G.', 'mamá de Lucía (8 meses)'],
-              ['La guía de atragantamiento me tranquilizó muchísimo. Por fin pude iniciar BLW sin ese miedo paralizante. Y tener todo en una sola plataforma es increíble.', 'Ana R.', 'mamá de Emma (6 meses)'],
-              ['Tenía mil PDFs guardados en el celu sin orden. Ahora todo está en la plataforma, organizado, con el menú de la semana y la bitácora de Mateo. El mejor dinero que invertí.', 'Sofía M.', 'mamá de Mateo (10 meses)'],
-            ].map(([text, name, role], i) => (
-              <div key={i} style={{ background: 'white', borderRadius: 20, padding: 28, boxShadow: '0 4px 20px rgba(0,0,0,.08)' }}>
-                <div style={{ fontSize: 40, color: '#0d9488', lineHeight: 1, marginBottom: 12, fontFamily: 'Georgia, serif' }}>"</div>
-                <div style={{ fontSize: 18, marginBottom: 12 }}>⭐⭐⭐⭐⭐</div>
-                <p style={{ fontSize: 15, color: '#374151', lineHeight: 1.8, marginBottom: 16, fontStyle: 'italic' }}>{text}</p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg,#F4A340,#E8821A)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontFamily: "'Fredoka',sans-serif", fontSize: 18, fontWeight: 700 }}>
-                    {(name as string)[0]}
-                  </div>
-                  <div>
-                    <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#1f2937' }}>— {name as string}</p>
-                    <p style={{ margin: 0, fontSize: 12, color: '#0d9488', fontWeight: 500 }}>{role as string}</p>
+              { text: 'El buscador IA me cambió la vida. Antes de comprar en el súper consulto qué tan seguros son los alimentos para Lucía. ¡Y el menú semanal es un salvavidas total!', name: 'María G.', role: 'mamá de Lucía (8 meses)', img: '/assets/testimonio-1.jpg', initial: 'M' },
+              { text: 'La guía de atragantamiento me tranquilizó muchísimo. Por fin pude iniciar BLW sin ese miedo paralizante. Y tener todo en una sola plataforma es increíble.', name: 'Ana R.', role: 'mamá de Emma (6 meses)', img: '/assets/testimonio-2.jpg', initial: 'A' },
+              { text: 'Tenía mil PDFs guardados en el celu sin orden. Ahora todo está en la plataforma, organizado, con el menú de la semana y la bitácora de Mateo. El mejor dinero que invertí.', name: 'Sofía M.', role: 'mamá de Mateo (10 meses)', img: '/assets/testimonio-3.jpg', initial: 'S' },
+            ].map((t, i) => (
+              <div key={i} style={{ background: 'white', borderRadius: 20, overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,.08)' }}>
+                {/* Captura de pantalla real — reemplazar con img real de WhatsApp/Instagram DM */}
+                <div style={{ position: 'relative', background: '#075E54', minHeight: 160, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={t.img}
+                    alt={`Testimonio de ${t.name}`}
+                    style={{ width: '100%', display: 'block', objectFit: 'cover', maxHeight: 220 }}
+                    onError={(e) => {
+                      const el = e.currentTarget
+                      el.style.display = 'none'
+                      const parent = el.parentElement!
+                      parent.innerHTML = `<div style="padding:24px;text-align:center;color:rgba(255,255,255,.7);font-size:13px;font-family:Outfit,sans-serif"><div style="font-size:32px;margin-bottom:8px">📱</div><p style="margin:0">Agrega aquí una captura<br/>real de WhatsApp o DM<br/><strong style="color:white">${t.img}</strong></p></div>`
+                    }}
+                  />
+                  <div style={{ position: 'absolute', top: 8, right: 8, background: '#25D366', color: 'white', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 700 }}>WhatsApp ✓✓</div>
+                </div>
+                <div style={{ padding: '20px 24px' }}>
+                  <div style={{ fontSize: 16, marginBottom: 8 }}>⭐⭐⭐⭐⭐</div>
+                  <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.7, marginBottom: 14, fontStyle: 'italic' }}>&ldquo;{t.text}&rdquo;</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,#0d9488,#0f766e)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontFamily: "'Fredoka',sans-serif", fontSize: 16, fontWeight: 700, flexShrink: 0 }}>
+                      {t.initial}
+                    </div>
+                    <div>
+                      <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#1f2937' }}>{t.name}</p>
+                      <p style={{ margin: 0, fontSize: 11, color: '#0d9488', fontWeight: 500 }}>{t.role}</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -524,6 +604,43 @@ export default async function Home() {
               🛒 Comenzar sin riesgo — {PRECIO}
             </a>
           </div>
+        </div>
+      </section>
+
+      {/* ─── URGENCIA REAL ─── */}
+      <section style={{ background: 'linear-gradient(135deg,#1f2937 0%,#111827 100%)', padding: '60px 0', fontFamily: "'Outfit',sans-serif" }}>
+        <div style={{ maxWidth: 780, margin: '0 auto', padding: '0 20px', textAlign: 'center' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#E8821A', borderRadius: 50, padding: '6px 20px', marginBottom: 24, fontSize: 13, fontWeight: 700, color: 'white', letterSpacing: '.5px' }}>
+            🔥 PRECIO DE LANZAMIENTO
+          </div>
+          <h2 style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 'clamp(26px,4vw,42px)', color: 'white', lineHeight: 1.2, margin: '0 0 16px' }}>
+            Hoy: <span style={{ color: '#F4A340' }}>{PRECIO}</span>{' '}
+            <span style={{ textDecoration: 'line-through', color: '#6b7280', fontSize: '0.65em' }}>{PRECIO_TACHADO}</span>
+          </h2>
+          <p style={{ fontSize: 17, color: 'rgba(255,255,255,.75)', lineHeight: 1.75, margin: '0 0 32px', maxWidth: 560, marginLeft: 'auto', marginRight: 'auto' }}>
+            El 1 de abril sube el precio. Si entras hoy, pagas el precio de lanzamiento y <strong style={{ color: 'white' }}>nunca te cobramos más</strong> — acceso de por vida con todas las actualizaciones incluidas.
+          </p>
+          {/* Bloques de lo que pierdes si esperas */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 12, marginBottom: 36 }}>
+            {[
+              { emoji: '📅', label: 'Menú semanal de esta semana', sub: 'listo para descargar' },
+              { emoji: '🤖', label: 'Buscador IA ilimitado', sub: 'desde hoy mismo' },
+              { emoji: '📚', label: '10 guías PDF', sub: 'acceso inmediato' },
+            ].map((item, i) => (
+              <div key={i} style={{ background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 16, padding: '18px 16px' }}>
+                <div style={{ fontSize: 28, marginBottom: 6 }}>{item.emoji}</div>
+                <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: 'white', lineHeight: 1.4 }}>{item.label}</p>
+                <p style={{ margin: '4px 0 0', fontSize: 12, color: 'rgba(255,255,255,.5)' }}>{item.sub}</p>
+              </div>
+            ))}
+          </div>
+          <a href={CHECKOUT_URL}
+            style={{ display: 'inline-block', background: 'linear-gradient(135deg,#F4A340,#E8821A)', color: 'white', padding: '20px 48px', borderRadius: 50, fontFamily: "'Fredoka',sans-serif", fontSize: 21, fontWeight: 700, textDecoration: 'none', boxShadow: '0 8px 40px rgba(232,130,26,.5)', letterSpacing: '.3px' }}>
+            Entrar ahora al precio de lanzamiento →
+          </a>
+          <p style={{ margin: '16px 0 0', fontSize: 13, color: 'rgba(255,255,255,.4)' }}>
+            🛡️ 7 días de garantía · Pago único · Sin suscripción
+          </p>
         </div>
       </section>
 
