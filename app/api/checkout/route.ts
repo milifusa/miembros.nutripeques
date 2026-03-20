@@ -14,7 +14,7 @@ export async function GET() {
         quantity: 1,
         price_data: {
           currency: 'mxn',
-          unit_amount: 25000, // $250 MXN
+          unit_amount: 39900, // $399 MXN
           product_data: {
             name: 'El Método NutriPeques 🥄',
             description: 'Plataforma completa · Buscador IA · Menú semanal · Bitácora · 10 guías PDF · Acceso de por vida',
