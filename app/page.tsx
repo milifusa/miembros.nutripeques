@@ -3,7 +3,6 @@ import { createClient } from '@/lib/supabase/server'
 import { UrgencyCountdown, HeroCountdown } from '@/components/landing/CountdownTimer'
 import FoodSearch from '@/components/landing/FoodSearch'
 import HeroImage from '@/components/landing/HeroImage'
-import TestimonialImage from '@/components/landing/TestimonialImage'
 
 const CHECKOUT_URL = '/api/checkout'
 const PRECIO = '$250 MXN'
@@ -485,12 +484,11 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ─── TESTIMONIOS ─── */}
+      {/* ─── TESTIMONIOS ─── (comentado hasta tener capturas reales)
       <section style={{ background: '#f0fdf4', padding: '70px 0', fontFamily: "'Outfit',sans-serif" }}>
         <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 20px' }}>
           <h2 style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 'clamp(24px,3.5vw,38px)', textAlign: 'center', marginBottom: 8, color: '#1f2937' }}>💬 Lo que dicen las mamás</h2>
           <p style={{ textAlign: 'center', color: '#6b7280', fontSize: 16, marginBottom: 36 }}>+100k familias nos siguen en redes — esto es lo que viven ellas:</p>
-          {/* Reemplaza estas imágenes con capturas reales de WhatsApp/DMs */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(300px,1fr))', gap: 20, marginBottom: 40 }}>
             {[
               { text: 'El buscador IA me cambió la vida. Antes de comprar en el súper consulto qué tan seguros son los alimentos para Lucía. ¡Y el menú semanal es un salvavidas total!', name: 'María G.', role: 'mamá de Lucía (8 meses)', img: '/assets/testimonio-1.jpg', initial: 'M' },
@@ -498,7 +496,6 @@ export default async function Home() {
               { text: 'Tenía mil PDFs guardados en el celu sin orden. Ahora todo está en la plataforma, organizado, con el menú de la semana y la bitácora de Mateo. El mejor dinero que invertí.', name: 'Sofía M.', role: 'mamá de Mateo (10 meses)', img: '/assets/testimonio-3.jpg', initial: 'S' },
             ].map((t, i) => (
               <div key={i} style={{ background: 'white', borderRadius: 20, overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,.08)' }}>
-                {/* Captura de pantalla real — reemplazar con img real de WhatsApp/Instagram DM */}
                 <TestimonialImage src={t.img} name={t.name} />
                 <div style={{ padding: '20px 24px' }}>
                   <div style={{ fontSize: 16, marginBottom: 8 }}>⭐⭐⭐⭐⭐</div>
@@ -524,6 +521,7 @@ export default async function Home() {
           </div>
         </div>
       </section>
+      ─── FIN TESTIMONIOS ───) */}
 
       {/* ─── SOBRE LILIANA ─── */}
       <section id="sobre-liliana" style={{ background: 'white', padding: '70px 0', fontFamily: "'Outfit',sans-serif" }}>
