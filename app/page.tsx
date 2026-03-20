@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { UrgencyCountdown, HeroCountdown } from '@/components/landing/CountdownTimer'
 import FoodSearch from '@/components/landing/FoodSearch'
+import HeroImage from '@/components/landing/HeroImage'
+import TestimonialImage from '@/components/landing/TestimonialImage'
 
 const CHECKOUT_URL = '/api/checkout'
 const PRECIO = '$250 MXN'
@@ -145,23 +147,7 @@ export default async function Home() {
           <div className="np-hero-emotional" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, alignItems: 'center' }}>
             {/* Foto */}
             <div className="np-hero-emotional-photo" style={{ textAlign: 'center', position: 'relative' }}>
-              <div style={{ position: 'relative', display: 'inline-block' }}>
-                <div style={{ position: 'absolute', inset: -6, borderRadius: '40% 60% 55% 45% / 45% 45% 55% 55%', background: 'linear-gradient(135deg,#F4A340,#0d9488)', opacity: .18, zIndex: 0 }} />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/assets/hero.jpg"
-                  alt="Liliana — Nutrióloga pediátrica NutriPeques"
-                  style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 420, borderRadius: '40% 60% 55% 45% / 45% 45% 55% 55%', objectFit: 'cover', aspectRatio: '4/5', boxShadow: '0 24px 64px rgba(232,130,26,.25)' }}
-                  onError={(e) => { (e.target as HTMLImageElement).src = '/assets/perfil.jpg'; (e.target as HTMLImageElement).style.borderRadius = '50%'; (e.target as HTMLImageElement).style.maxWidth = '320px'; }}
-                />
-                <div style={{ position: 'absolute', bottom: 16, right: -16, zIndex: 2, background: 'white', borderRadius: 20, padding: '10px 18px', boxShadow: '0 8px 24px rgba(0,0,0,.12)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 24 }}>👶</span>
-                  <div>
-                    <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#1f2937' }}>+100k familias</p>
-                    <p style={{ margin: 0, fontSize: 11, color: '#6b7280' }}>confían en NutriPeques</p>
-                  </div>
-                </div>
-              </div>
+              <HeroImage />
             </div>
             {/* Texto */}
             <div>
@@ -513,21 +499,7 @@ export default async function Home() {
             ].map((t, i) => (
               <div key={i} style={{ background: 'white', borderRadius: 20, overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,.08)' }}>
                 {/* Captura de pantalla real — reemplazar con img real de WhatsApp/Instagram DM */}
-                <div style={{ position: 'relative', background: '#075E54', minHeight: 160, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={t.img}
-                    alt={`Testimonio de ${t.name}`}
-                    style={{ width: '100%', display: 'block', objectFit: 'cover', maxHeight: 220 }}
-                    onError={(e) => {
-                      const el = e.currentTarget
-                      el.style.display = 'none'
-                      const parent = el.parentElement!
-                      parent.innerHTML = `<div style="padding:24px;text-align:center;color:rgba(255,255,255,.7);font-size:13px;font-family:Outfit,sans-serif"><div style="font-size:32px;margin-bottom:8px">📱</div><p style="margin:0">Agrega aquí una captura<br/>real de WhatsApp o DM<br/><strong style="color:white">${t.img}</strong></p></div>`
-                    }}
-                  />
-                  <div style={{ position: 'absolute', top: 8, right: 8, background: '#25D366', color: 'white', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 700 }}>WhatsApp ✓✓</div>
-                </div>
+                <TestimonialImage src={t.img} name={t.name} />
                 <div style={{ padding: '20px 24px' }}>
                   <div style={{ fontSize: 16, marginBottom: 8 }}>⭐⭐⭐⭐⭐</div>
                   <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.7, marginBottom: 14, fontStyle: 'italic' }}>&ldquo;{t.text}&rdquo;</p>
