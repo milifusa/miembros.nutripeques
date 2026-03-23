@@ -5,7 +5,7 @@ import FoodSearch from '@/components/landing/FoodSearch'
 import HeroImage from '@/components/landing/HeroImage'
 
 const CHECKOUT_URL = '/api/checkout'
-const PRECIO = '$399 MXN'
+const PRECIO = '$299 MXN'
 const PRECIO_TACHADO = '$800 MXN'
 
 // Mockup visual de pantalla de la plataforma
@@ -624,7 +624,7 @@ export default async function Home() {
               ['¿Desde qué edad puedo aplicar el Método NutriPeques?', 'Está diseñado para bebés de 6 meses hasta los 2 años, con contenido específico para cada etapa de desarrollo.'],
               ['¿Es BLW o purés?', 'Los dos. El método incluye BLW, purés, finger foods y una transición gradual entre estilos. Tú decides cuál se adapta mejor a tu bebé.'],
               ['¿Cuándo recibo el acceso?', 'Al instante. En cuanto se procesa tu pago recibes un correo con tu enlace de acceso a la plataforma. Todo está disponible desde el primer minuto.'],
-              ['¿Tiene costo mensual?', 'No. Es pago único de $399 MXN y el acceso es de por vida. También recibes las actualizaciones sin costo adicional.'],
+              ['¿Tiene costo mensual?', 'No. Es pago único de $299 MXN y el acceso es de por vida. También recibes las actualizaciones sin costo adicional.'],
               ['¿Puedo acceder desde el celular?', 'Sí, desde cualquier dispositivo — celular, tablet o computadora. La plataforma es web, no necesitas descargar ninguna app.'],
               ['¿Qué pasa si no me funciona?', 'Tienes 7 días de garantía total. Si no estás satisfecha, te devolvemos el 100% de tu dinero sin ninguna pregunta.'],
             ].map(([q, a], i) => (
