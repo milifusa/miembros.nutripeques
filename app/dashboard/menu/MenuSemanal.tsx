@@ -56,6 +56,44 @@ const TIEMPOS: { key: keyof DiaMenu; label: string; emoji: string; color: string
 ]
 
 // ─── Estado vacío: pantalla para generar ─────────────────────────────────────
+function PopupGenerando({ nombreBebe }: { nombreBebe: string | null }) {
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 1000,
+      background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: 20,
+    }}>
+      <div style={{
+        background: 'white', borderRadius: 28, padding: '44px 40px',
+        maxWidth: 420, width: '100%', textAlign: 'center',
+        boxShadow: '0 24px 64px rgba(0,0,0,0.2)',
+      }}>
+        <div style={{ fontSize: 56, marginBottom: 16 }}>👶🍽️</div>
+        <h2 style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 24, color: '#1f2937', margin: '0 0 12px' }}>
+          Preparando el menú de {nombreBebe ?? 'tu bebé'}
+        </h2>
+        <p style={{ color: '#6b7280', fontSize: 15, lineHeight: 1.7, margin: '0 0 28px' }}>
+          Estamos creando un menú personalizado basado en la edad, etapa de desarrollo y requerimientos nutricionales de {nombreBebe ?? 'tu bebé'}.
+        </p>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: 20 }}>
+          {[0, 1, 2].map(i => (
+            <div key={i} style={{
+              width: 10, height: 10, borderRadius: '50%',
+              background: 'linear-gradient(135deg,#F4A340,#E8821A)',
+              animation: `bounce 1.2s ease-in-out ${i * 0.2}s infinite`,
+            }} />
+          ))}
+        </div>
+        <style>{`@keyframes bounce { 0%,80%,100%{transform:scale(0.8);opacity:.5} 40%{transform:scale(1.2);opacity:1} }`}</style>
+        <p style={{ color: '#9ca3af', fontSize: 13, margin: 0 }}>
+          Esto puede tomar entre 20 y 40 segundos...
+        </p>
+      </div>
+    </div>
+  )
+}
+
 function PantallaGenerar({ nombreBebe, tienePerfil, onGenerado }: {
   nombreBebe: string | null
   tienePerfil: boolean
@@ -123,11 +161,7 @@ function PantallaGenerar({ nombreBebe, tienePerfil, onGenerado }: {
         {generando ? '✨ Generando menú...' : '✨ Generar mi menú'}
       </button>
 
-      {generando && (
-        <p style={{ color: '#9ca3af', fontSize: 13, marginTop: 14 }}>
-          Esto puede tomar unos segundos...
-        </p>
-      )}
+      {generando && <PopupGenerando nombreBebe={nombreBebe} />}
     </div>
   )
 }
@@ -715,6 +749,7 @@ export default function MenuSemanalUI({
 
   return (
     <div>
+      {regenerando && <PopupGenerando nombreBebe={nombreBebe} />}
       {!esMenuActual && !menuLocal && (
         <div style={{ background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: 14, padding: '14px 20px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
           <p style={{ margin: 0, fontSize: 14, color: '#92400E' }}>
