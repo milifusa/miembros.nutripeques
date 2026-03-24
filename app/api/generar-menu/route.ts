@@ -117,10 +117,14 @@ En "alergenos" incluye solo los que apliquen de: gluten, huevo, lácteos, pescad
 En "tiempo_coccion" pon 0 si no requiere cocción.
 Completa los 7 días con el mismo nivel de detalle.`
 
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return NextResponse.json({ error: 'ANTHROPIC_API_KEY no configurada' }, { status: 500 })
+  }
+
   let contenido: object
   try {
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
+      model: 'claude-haiku-4-5-20251001',
       max_tokens: 8192,
       messages: [{ role: 'user', content: prompt }],
     })
@@ -128,8 +132,9 @@ Completa los 7 días con el mismo nivel de detalle.`
     const limpio = texto.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
     contenido = JSON.parse(limpio)
   } catch (err) {
-    console.error('Error generando menú con IA:', err)
-    return NextResponse.json({ error: 'Error al generar el menú con IA' }, { status: 500 })
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('Error generando menú:', msg)
+    return NextResponse.json({ error: msg }, { status: 500 })
   }
 
   // Guardar en DB — upsert por usuario + hijo + semana
