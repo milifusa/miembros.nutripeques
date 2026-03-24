@@ -35,7 +35,7 @@ export default async function AdminPage() {
     admin.from('busquedas_ia').select('id, usuario_id') as unknown as Promise<{ data: { usuario_id: string }[] | null; error: unknown }>,
     admin.from('bitacora_bebe').select('id, usuario_id') as unknown as Promise<{ data: { usuario_id: string }[] | null; error: unknown }>,
     admin.from('menus_semanales').select('id, usuario_id') as unknown as Promise<{ data: { usuario_id: string }[] | null; error: unknown }>,
-    admin.from('hijos').select('id, usuario_id') as unknown as Promise<{ data: { usuario_id: string }[] | null; error: unknown }>,
+    admin.from('hijos').select('id, usuario_id, nombre, fecha_nacimiento').order('fecha_nacimiento', { ascending: true }) as unknown as Promise<{ data: { id: string; usuario_id: string; nombre: string; fecha_nacimiento: string }[] | null; error: unknown }>,
     admin.from('busquedas_ia').select('id', { count: 'exact' })
       .gte('created_at', new Date(Date.now() - 86400000).toISOString()),
     admin.from('usuarios').select('id', { count: 'exact' })
@@ -58,8 +58,11 @@ export default async function AdminPage() {
   const menuMap: Record<string, number> = {}
   menuRes.data?.forEach(m => { menuMap[m.usuario_id] = (menuMap[m.usuario_id] ?? 0) + 1 })
 
-  const hijosMap: Record<string, number> = {}
-  hijosRes.data?.forEach(h => { hijosMap[h.usuario_id] = (hijosMap[h.usuario_id] ?? 0) + 1 })
+  const hijosMap: Record<string, { id: string; nombre: string; fecha_nacimiento: string }[]> = {}
+  hijosRes.data?.forEach(h => {
+    if (!hijosMap[h.usuario_id]) hijosMap[h.usuario_id] = []
+    hijosMap[h.usuario_id].push({ id: h.id, nombre: h.nombre, fecha_nacimiento: h.fecha_nacimiento })
+  })
 
   // Estado de ban + último login
   const authUsers = authUsersRes.data?.users ?? []
@@ -236,10 +239,27 @@ export default async function AdminPage() {
                         <td style={{ padding: '13px 16px', color: '#6b7280', whiteSpace: 'nowrap' }}>
                           {new Date(m.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </td>
-                        <td style={{ padding: '13px 16px', textAlign: 'center' }}>
-                          <span style={{ background: '#F3E8FF', color: '#7C3AED', fontWeight: 700, fontSize: 13, padding: '3px 10px', borderRadius: 10 }}>
-                            {hijosMap[m.id] ?? 0}
-                          </span>
+                        <td style={{ padding: '13px 16px', minWidth: 160 }}>
+                          {(hijosMap[m.id] ?? []).length === 0 ? (
+                            <span style={{ color: '#d1d5db', fontSize: 13 }}>—</span>
+                          ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                              {hijosMap[m.id].map(h => {
+                                const fn = new Date(h.fecha_nacimiento + 'T12:00:00')
+                                const hoy = new Date()
+                                const meses = (hoy.getFullYear() - fn.getFullYear()) * 12 + (hoy.getMonth() - fn.getMonth())
+                                const edad = meses < 24 ? `${meses}m` : `${Math.floor(meses / 12)}a`
+                                return (
+                                  <div key={h.id} style={{ background: '#F3E8FF', borderRadius: 8, padding: '4px 10px' }}>
+                                    <span style={{ color: '#7C3AED', fontWeight: 700, fontSize: 13 }}>👶 {h.nombre}</span>
+                                    <span style={{ color: '#9333ea', fontSize: 11, display: 'block' }}>
+                                      {fn.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })} · {edad}
+                                    </span>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )}
                         </td>
                         <td style={{ padding: '13px 16px', whiteSpace: 'nowrap' }}>
                           {m.monto_pago != null ? (
