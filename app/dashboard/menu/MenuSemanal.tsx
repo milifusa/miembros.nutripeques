@@ -86,12 +86,12 @@ function PantallaGenerar({ nombreBebe, tienePerfil, onGenerado }: {
 
   return (
     <div style={{ textAlign: 'center', padding: '20px 0' }}>
-      <div style={{ fontSize: 64, marginBottom: 16 }}>🤖</div>
+      <div style={{ fontSize: 64, marginBottom: 16 }}>📅</div>
       <h2 style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 24, color: '#1f2937', margin: '0 0 10px' }}>
-        Genera tu menú semanal con IA
+        Genera tu menú semanal
       </h2>
       <p style={{ color: '#6b7280', fontSize: 15, margin: '0 0 28px', lineHeight: 1.6, maxWidth: 420, marginInline: 'auto' }}>
-        Claude creará un menú de 7 días adaptado a la etapa de{' '}
+        Crearemos un menú de 7 días adaptado a la etapa de{' '}
         <strong>{nombreBebe ?? 'tu bebé'}</strong>, con recetas completas, ingredientes, pasos y valores nutricionales.
       </p>
 
@@ -120,7 +120,7 @@ function PantallaGenerar({ nombreBebe, tienePerfil, onGenerado }: {
           transition: 'opacity .15s',
         }}
       >
-        {generando ? '✨ Generando menú...' : '✨ Generar mi menú con IA'}
+        {generando ? '✨ Generando menú...' : '✨ Generar mi menú'}
       </button>
 
       {generando && (
@@ -439,7 +439,7 @@ function MenuGenerado({
       {/* Nota */}
       <div style={{ background: '#F0FDFA', border: '1px solid #99F6E4', borderRadius: 16, padding: '16px 20px', marginTop: 24 }}>
         <p style={{ margin: 0, fontSize: 13, color: '#0f766e', lineHeight: 1.6 }}>
-          <strong>💡 Recuerda:</strong> Este menú es una guía orientativa generada con IA. Siempre adapta las porciones al apetito de tu bebé. La leche materna o fórmula sigue siendo su alimento principal hasta los 12 meses.
+          <strong>💡 Recuerda:</strong> Este menú es una guía orientativa. Siempre adapta las porciones al apetito de tu bebé. La leche materna o fórmula sigue siendo su alimento principal hasta los 12 meses.
         </p>
       </div>
     </div>
