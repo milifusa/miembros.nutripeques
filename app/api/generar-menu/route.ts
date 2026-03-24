@@ -37,14 +37,16 @@ export async function POST() {
   // Traer todos los hijos del usuario y seleccionar el activo o el primero
   const { data: hijosData } = await supabase
     .from('hijos')
-    .select('id, nombre, fecha_nacimiento')
+    .select('id, nombre, fecha_nacimiento, pais')
     .eq('usuario_id', user.id)
     .order('created_at', { ascending: true })
 
-  const hijos = (hijosData ?? []) as { id: string; nombre: string; fecha_nacimiento: string }[]
+  const hijos = (hijosData ?? []) as { id: string; nombre: string; fecha_nacimiento: string; pais: string | null }[]
   const hijoSeleccionado = hijos.find(h => h.id === hijoActivoId) ?? hijos[0] ?? null
 
   console.log('[generar-menu] cookie hijoActivoId:', hijoActivoId, '| hijoSeleccionado:', hijoSeleccionado?.nombre)
+
+  const pais = hijoSeleccionado?.pais ?? 'México'
 
   if (hijoSeleccionado) {
     hijoId = hijoSeleccionado.id
@@ -61,18 +63,20 @@ export async function POST() {
   const semana = getLunesDeEstaSemana()
   const rango = rangoEdad(edadMeses)
 
-  const prompt = `Eres una nutricionista pediátrica experta en alimentación complementaria (BLW y papillas) para bebés mexicanos.
+  const prompt = `Eres una nutricionista pediátrica experta en alimentación complementaria (BLW y papillas).
 
 Genera un menú semanal completo para ${nombreBebe}, un bebé de ${edadMeses} meses. Etapa: ${rango}.
+País de referencia: ${pais}. Usa ingredientes típicos y fáciles de conseguir en ${pais}.
 
 REQUISITOS:
 - 7 días: Lunes, Martes, Miércoles, Jueves, Viernes, Sábado, Domingo
 - 4 tiempos por día: desayuno, comida, merienda, cena
-- Ingredientes disponibles en México, variados, nutritivos y apropiados para la edad
+- Ingredientes variados, nutritivos y apropiados para la edad, fáciles de conseguir en ${pais}
 - Sin sal añadida para menores de 12 meses, mínima para mayores
 - Sin miel para menores de 12 meses
 - Incluye alimentos ricos en hierro, zinc, omega-3 y vitaminas
 - Varía los grupos de alimentos a lo largo de la semana
+- Para cada comida incluye receta completa: ingredientes con cantidades, pasos de preparación e información nutricional estimada
 
 Responde ÚNICAMENTE con este JSON, sin texto adicional, sin markdown, sin explicaciones:
 
@@ -82,21 +86,40 @@ Responde ÚNICAMENTE con este JSON, sin texto adicional, sin markdown, sin expli
   "dias": [
     {
       "dia": "Lunes",
-      "desayuno": { "nombre": "...", "descripcion": "...", "emoji": "...", "alergenos": [] },
-      "comida": { "nombre": "...", "descripcion": "...", "emoji": "...", "alergenos": [] },
-      "merienda": { "nombre": "...", "descripcion": "...", "emoji": "...", "alergenos": [] },
-      "cena": { "nombre": "...", "descripcion": "...", "emoji": "...", "alergenos": [] }
+      "desayuno": {
+        "nombre": "...",
+        "descripcion": "...",
+        "emoji": "...",
+        "tiempo_preparacion": 10,
+        "tiempo_coccion": 15,
+        "porciones": "1 porción (aprox. 150g)",
+        "ingredientes": ["100g plátano maduro", "2 cdas leche materna o fórmula"],
+        "preparacion": ["Pelar y triturar el plátano.", "Mezclar con leche hasta obtener textura deseada."],
+        "nutricion": {
+          "calorias": "~90 kcal",
+          "proteinas": "1g",
+          "carbohidratos": "23g",
+          "grasas": "0.3g",
+          "hierro": "0.3mg"
+        },
+        "alergenos": []
+      },
+      "comida": { "nombre": "...", "descripcion": "...", "emoji": "...", "tiempo_preparacion": 10, "tiempo_coccion": 20, "porciones": "...", "ingredientes": [], "preparacion": [], "nutricion": { "calorias": "...", "proteinas": "...", "carbohidratos": "...", "grasas": "...", "hierro": "..." }, "alergenos": [] },
+      "merienda": { "nombre": "...", "descripcion": "...", "emoji": "...", "tiempo_preparacion": 5, "tiempo_coccion": 0, "porciones": "...", "ingredientes": [], "preparacion": [], "nutricion": { "calorias": "...", "proteinas": "...", "carbohidratos": "...", "grasas": "...", "hierro": "..." }, "alergenos": [] },
+      "cena": { "nombre": "...", "descripcion": "...", "emoji": "...", "tiempo_preparacion": 10, "tiempo_coccion": 15, "porciones": "...", "ingredientes": [], "preparacion": [], "nutricion": { "calorias": "...", "proteinas": "...", "carbohidratos": "...", "grasas": "...", "hierro": "..." }, "alergenos": [] }
     }
   ]
 }
 
-En "alergenos" incluye solo los que apliquen de: gluten, huevo, lácteos, pescado, mariscos, nueces, cacahuate, leguminosas, ajonjolí, soya. Si no hay, pon array vacío [].`
+En "alergenos" incluye solo los que apliquen de: gluten, huevo, lácteos, pescado, mariscos, nueces, cacahuate, leguminosas, ajonjolí, soya. Si no hay, pon array vacío [].
+En "tiempo_coccion" pon 0 si no requiere cocción.
+Completa los 7 días con el mismo nivel de detalle.`
 
   let contenido: object
   try {
     const message = await anthropic.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 4096,
+      model: 'claude-sonnet-4-6',
+      max_tokens: 8192,
       messages: [{ role: 'user', content: prompt }],
     })
     const texto = message.content[0].type === 'text' ? message.content[0].text : ''

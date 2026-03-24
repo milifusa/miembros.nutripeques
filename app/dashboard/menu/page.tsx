@@ -6,6 +6,21 @@ import LogoutButton from '@/components/ui/LogoutButton'
 import MenuSemanalUI from './MenuSemanal'
 import type { MenuContenido } from './MenuSemanal'
 
+type RecetaGuardada = {
+  id: string
+  nombre: string
+  emoji: string | null
+  descripcion: string | null
+  tiempo_preparacion: number | null
+  tiempo_coccion: number | null
+  porciones: string | null
+  ingredientes: string[] | null
+  preparacion: string[] | null
+  nutricion: Record<string, string> | null
+  alergenos: string[] | null
+  created_at: string
+}
+
 function getLunesDeEstaSemana(): string {
   const hoy = new Date()
   const dia = hoy.getDay()
@@ -78,6 +93,19 @@ export default async function MenuPage() {
     console.log('[menu] hijoId es null, no se busca menú')
   }
 
+  // Fetch saved recipes for this child
+  let recetasGuardadas: RecetaGuardada[] = []
+  if (hijoId) {
+    try {
+      const { data } = await (supabase.from('recetas_guardadas') as ReturnType<typeof supabase.from>)
+        .select('*')
+        .eq('usuario_id', user.id)
+        .eq('hijo_id', hijoId)
+        .order('created_at', { ascending: false }) as unknown as { data: RecetaGuardada[] | null }
+      recetasGuardadas = data ?? []
+    } catch { /* table may not exist yet */ }
+  }
+
   const tieneMenu = !!menuGuardado?.contenido
   const esMenuActual = menuGuardado ? (() => {
     const lunes = new Date(menuGuardado.semana + 'T12:00:00')
@@ -143,6 +171,8 @@ export default async function MenuPage() {
                 generadoEn={menuGuardado!.created_at}
                 tienePerfil={tienePerfil}
                 esMenuActual={esMenuActual}
+                hijoId={hijoId}
+                recetasIniciales={recetasGuardadas}
               />
             </div>
           ) : (
@@ -153,6 +183,8 @@ export default async function MenuPage() {
                 generadoEn={null}
                 tienePerfil={tienePerfil}
                 esMenuActual={false}
+                hijoId={hijoId}
+                recetasIniciales={recetasGuardadas}
               />
             </div>
           )}

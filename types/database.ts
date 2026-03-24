@@ -165,6 +165,41 @@ export interface Database {
           edad_meses?: number | null
         }
       }
+      recetas_guardadas: {
+        Row: {
+          id: string
+          usuario_id: string
+          hijo_id: string | null
+          nombre: string
+          emoji: string | null
+          descripcion: string | null
+          tiempo_preparacion: number | null
+          tiempo_coccion: number | null
+          porciones: string | null
+          ingredientes: string[] | null
+          preparacion: string[] | null
+          nutricion: Record<string, string> | null
+          alergenos: string[] | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          usuario_id: string
+          hijo_id?: string | null
+          nombre: string
+          emoji?: string | null
+          descripcion?: string | null
+          tiempo_preparacion?: number | null
+          tiempo_coccion?: number | null
+          porciones?: string | null
+          ingredientes?: string[] | null
+          preparacion?: string[] | null
+          nutricion?: Record<string, string> | null
+          alergenos?: string[] | null
+          created_at?: string
+        }
+        Update: never
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>
