@@ -20,11 +20,12 @@ export default async function PerfilPage() {
 
   const { data: hijosRaw } = await supabase
     .from('hijos')
-    .select('id, nombre, fecha_nacimiento, pais')
+    .select('id, nombre, fecha_nacimiento')
     .eq('usuario_id', user.id)
     .order('created_at', { ascending: true })
 
-  const hijos = (hijosRaw ?? []) as { id: string; nombre: string; fecha_nacimiento: string; pais: string | null }[]
+  const hijos = ((hijosRaw ?? []) as { id: string; nombre: string; fecha_nacimiento: string }[])
+    .map(h => ({ ...h, pais: null as string | null }))
 
   return (
     <>
