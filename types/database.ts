@@ -48,6 +48,7 @@ export interface Database {
           usuario_id: string
           nombre: string
           fecha_nacimiento: string
+          pais: string | null
           created_at: string
         }
         Insert: {
@@ -55,11 +56,13 @@ export interface Database {
           usuario_id: string
           nombre: string
           fecha_nacimiento: string
+          pais?: string | null
           created_at?: string
         }
         Update: {
           nombre?: string
           fecha_nacimiento?: string
+          pais?: string | null
         }
       }
       sesiones: {

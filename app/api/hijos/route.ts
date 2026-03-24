@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
-  const { nombre, fecha_nacimiento } = await request.json()
+  const { nombre, fecha_nacimiento, pais } = await request.json()
   if (!nombre?.trim()) return NextResponse.json({ error: 'El nombre es requerido' }, { status: 400 })
   if (!fecha_nacimiento) return NextResponse.json({ error: 'La fecha de nacimiento es requerida' }, { status: 400 })
 
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
   )
 
   const { data, error } = await tb(supabase, 'hijos')
-    .insert({ usuario_id: user.id, nombre: nombre.trim(), fecha_nacimiento } as never)
+    .insert({ usuario_id: user.id, nombre: nombre.trim(), fecha_nacimiento, pais: pais ?? null } as never)
     .select()
     .single()
 
@@ -70,12 +70,12 @@ export async function PUT(request: NextRequest) {
   const id = searchParams.get('id')
   if (!id) return NextResponse.json({ error: 'Falta ID' }, { status: 400 })
 
-  const { nombre, fecha_nacimiento } = await request.json()
+  const { nombre, fecha_nacimiento, pais } = await request.json()
   if (!nombre?.trim()) return NextResponse.json({ error: 'El nombre es requerido' }, { status: 400 })
   if (!fecha_nacimiento) return NextResponse.json({ error: 'La fecha de nacimiento es requerida' }, { status: 400 })
 
   const { data, error } = await tb(supabase, 'hijos')
-    .update({ nombre: nombre.trim(), fecha_nacimiento } as never)
+    .update({ nombre: nombre.trim(), fecha_nacimiento, pais: pais ?? null } as never)
     .eq('id', id)
     .eq('usuario_id', user.id)
     .select()

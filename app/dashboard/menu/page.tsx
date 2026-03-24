@@ -79,7 +79,14 @@ export default async function MenuPage() {
   }
 
   const tieneMenu = !!menuGuardado?.contenido
-  const esMenuActual = menuGuardado?.semana === semana
+  const esMenuActual = menuGuardado ? (() => {
+    const lunes = new Date(menuGuardado.semana + 'T12:00:00')
+    const domingo = new Date(lunes)
+    domingo.setDate(lunes.getDate() + 6)
+    domingo.setHours(23, 59, 59, 999)
+    const ahora = new Date()
+    return ahora >= lunes && ahora <= domingo
+  })() : false
 
   return (
     <>

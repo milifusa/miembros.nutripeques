@@ -3,7 +3,14 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-type Hijo = { id: string; nombre: string; fecha_nacimiento: string }
+type Hijo = { id: string; nombre: string; fecha_nacimiento: string; pais: string | null }
+
+const PAISES_HISPANOHABLANTES = [
+  'México', 'España', 'Colombia', 'Argentina', 'Venezuela', 'Perú', 'Chile',
+  'Ecuador', 'Guatemala', 'Cuba', 'Bolivia', 'República Dominicana', 'Honduras',
+  'Paraguay', 'El Salvador', 'Nicaragua', 'Costa Rica', 'Panamá', 'Uruguay',
+  'Puerto Rico', 'Guinea Ecuatorial', 'Estados Unidos',
+]
 
 function calcularEdad(fecha: string): string {
   const nac = new Date(fecha)
@@ -24,7 +31,7 @@ function HijoForm({
   onCancelar,
 }: {
   inicial?: Hijo
-  onGuardar: (datos: { nombre: string; fecha_nacimiento: string }) => Promise<void>
+  onGuardar: (datos: { nombre: string; fecha_nacimiento: string; pais: string | null }) => Promise<void>
   onCancelar: () => void
 }) {
   const hoy = new Date().toISOString().split('T')[0]
@@ -34,6 +41,7 @@ function HijoForm({
 
   const [nombre, setNombre] = useState(inicial?.nombre ?? '')
   const [fecha, setFecha] = useState(inicial?.fecha_nacimiento ?? '')
+  const [pais, setPais] = useState(inicial?.pais ?? 'México')
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState('')
 
@@ -54,7 +62,7 @@ function HijoForm({
     setGuardando(true)
     setError('')
     try {
-      await onGuardar({ nombre, fecha_nacimiento: fecha })
+      await onGuardar({ nombre, fecha_nacimiento: fecha, pais })
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Error al guardar')
     }
@@ -86,6 +94,18 @@ function HijoForm({
           )}
         </div>
       </div>
+      <div style={{ marginBottom: 14 }}>
+        <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 5 }}>País *</label>
+        <select
+          required value={pais}
+          onChange={e => setPais(e.target.value)}
+          style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, fontFamily: "'Outfit',sans-serif", outline: 'none', background: 'white', color: '#1f2937' }}
+        >
+          {PAISES_HISPANOHABLANTES.map(p => (
+            <option key={p} value={p}>{p}</option>
+          ))}
+        </select>
+      </div>
       {error && <p style={{ color: '#DC2626', fontSize: 13, margin: '0 0 12px' }}>⚠️ {error}</p>}
       <div style={{ display: 'flex', gap: 10 }}>
         <button
@@ -112,7 +132,7 @@ export default function HijosManager({ hijosIniciales }: { hijosIniciales: Hijo[
   const [editandoId, setEditandoId] = useState<string | null>(null)
   const [eliminando, setEliminando] = useState<string | null>(null)
 
-  async function agregar(datos: { nombre: string; fecha_nacimiento: string }) {
+  async function agregar(datos: { nombre: string; fecha_nacimiento: string; pais: string | null }) {
     const res = await fetch('/api/hijos', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -125,7 +145,7 @@ export default function HijosManager({ hijosIniciales }: { hijosIniciales: Hijo[
     router.refresh()
   }
 
-  async function actualizar(id: string, datos: { nombre: string; fecha_nacimiento: string }) {
+  async function actualizar(id: string, datos: { nombre: string; fecha_nacimiento: string; pais: string | null }) {
     const res = await fetch(`/api/hijos?id=${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
