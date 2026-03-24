@@ -65,72 +65,55 @@ export async function POST() {
   const semana = getLunesDeEstaSemana()
   const rango = rangoEdad(edadMeses)
 
-  const prompt = `Eres una nutricionista pediátrica experta en alimentación complementaria (BLW y papillas).
-
-Genera un menú semanal completo para ${nombreBebe}, un bebé de ${edadMeses} meses. Etapa: ${rango}.
-País de referencia: ${pais}. Usa ingredientes típicos y fáciles de conseguir en ${pais}.
-
-REQUISITOS:
-- 7 días: Lunes, Martes, Miércoles, Jueves, Viernes, Sábado, Domingo
-- 4 tiempos por día: desayuno, comida, merienda, cena
-- Ingredientes variados, nutritivos y apropiados para la edad, fáciles de conseguir en ${pais}
-- Sin sal añadida para menores de 12 meses, mínima para mayores
-- Sin miel para menores de 12 meses
-- Incluye alimentos ricos en hierro, zinc, omega-3 y vitaminas
-- Varía los grupos de alimentos a lo largo de la semana
-- Para cada comida incluye receta completa: ingredientes con cantidades, pasos de preparación e información nutricional estimada
-
-Responde ÚNICAMENTE con este JSON, sin texto adicional, sin markdown, sin explicaciones:
-
-{
-  "rango": "descripción corta del rango de edad",
-  "descripcion": "frase de 1 línea describiendo la etapa",
-  "dias": [
-    {
-      "dia": "Lunes",
-      "desayuno": {
-        "nombre": "...",
-        "descripcion": "...",
-        "emoji": "...",
-        "tiempo_preparacion": 10,
-        "tiempo_coccion": 15,
-        "porciones": "1 porción (aprox. 150g)",
-        "ingredientes": ["100g plátano maduro", "2 cdas leche materna o fórmula"],
-        "preparacion": ["Pelar y triturar el plátano.", "Mezclar con leche hasta obtener textura deseada."],
-        "nutricion": {
-          "calorias": "~90 kcal",
-          "proteinas": "1g",
-          "carbohidratos": "23g",
-          "grasas": "0.3g",
-          "hierro": "0.3mg"
-        },
-        "alergenos": []
-      },
-      "comida": { "nombre": "...", "descripcion": "...", "emoji": "...", "tiempo_preparacion": 10, "tiempo_coccion": 20, "porciones": "...", "ingredientes": [], "preparacion": [], "nutricion": { "calorias": "...", "proteinas": "...", "carbohidratos": "...", "grasas": "...", "hierro": "..." }, "alergenos": [] },
-      "merienda": { "nombre": "...", "descripcion": "...", "emoji": "...", "tiempo_preparacion": 5, "tiempo_coccion": 0, "porciones": "...", "ingredientes": [], "preparacion": [], "nutricion": { "calorias": "...", "proteinas": "...", "carbohidratos": "...", "grasas": "...", "hierro": "..." }, "alergenos": [] },
-      "cena": { "nombre": "...", "descripcion": "...", "emoji": "...", "tiempo_preparacion": 10, "tiempo_coccion": 15, "porciones": "...", "ingredientes": [], "preparacion": [], "nutricion": { "calorias": "...", "proteinas": "...", "carbohidratos": "...", "grasas": "...", "hierro": "..." }, "alergenos": [] }
-    }
-  ]
-}
-
-En "alergenos" incluye solo los que apliquen de: gluten, huevo, lácteos, pescado, mariscos, nueces, cacahuate, leguminosas, ajonjolí, soya. Si no hay, pon array vacío [].
-En "tiempo_coccion" pon 0 si no requiere cocción.
-Completa los 7 días con el mismo nivel de detalle.`
-
   if (!process.env.ANTHROPIC_API_KEY) {
     return NextResponse.json({ error: 'ANTHROPIC_API_KEY no configurada' }, { status: 500 })
   }
 
-  let contenido: object
-  try {
+  function buildPrompt(dias: string[]): string {
+    return `Eres una nutricionista pediátrica experta en alimentación complementaria (BLW y papillas).
+
+Genera el menú para ${nombreBebe}, bebé de ${edadMeses} meses. Etapa: ${rango}.
+País: ${pais}. Usa ingredientes típicos y fáciles de conseguir en ${pais}.
+Sin sal ni miel para menores de 12 meses. Incluye hierro, zinc, omega-3.
+
+Responde ÚNICAMENTE con un array JSON de ${dias.length} días, sin texto adicional ni markdown:
+
+[
+  {
+    "dia": "${dias[0]}",
+    "desayuno": { "nombre":"...","descripcion":"...","emoji":"...","tiempo_preparacion":10,"tiempo_coccion":0,"porciones":"1 porción (aprox. 120g)","ingredientes":["100g ingrediente"],"preparacion":["Paso 1.","Paso 2."],"nutricion":{"calorias":"~80 kcal","proteinas":"2g","carbohidratos":"15g","grasas":"1g","hierro":"0.5mg"},"alergenos":[] },
+    "comida": { "nombre":"...","descripcion":"...","emoji":"...","tiempo_preparacion":10,"tiempo_coccion":15,"porciones":"1 porción (aprox. 150g)","ingredientes":[],"preparacion":[],"nutricion":{"calorias":"...","proteinas":"...","carbohidratos":"...","grasas":"...","hierro":"..."},"alergenos":[] },
+    "merienda": { "nombre":"...","descripcion":"...","emoji":"...","tiempo_preparacion":5,"tiempo_coccion":0,"porciones":"1 porción (aprox. 80g)","ingredientes":[],"preparacion":[],"nutricion":{"calorias":"...","proteinas":"...","carbohidratos":"...","grasas":"...","hierro":"..."},"alergenos":[] },
+    "cena": { "nombre":"...","descripcion":"...","emoji":"...","tiempo_preparacion":10,"tiempo_coccion":10,"porciones":"1 porción (aprox. 130g)","ingredientes":[],"preparacion":[],"nutricion":{"calorias":"...","proteinas":"...","carbohidratos":"...","grasas":"...","hierro":"..."},"alergenos":[] }
+  }
+]
+
+Genera exactamente ${dias.length} objetos para los días: ${dias.join(', ')}.
+En "alergenos" incluye solo: gluten, huevo, lácteos, pescado, mariscos, nueces, cacahuate, leguminosas, ajonjolí, soya. Si no hay, pon [].`
+  }
+
+  async function generarDias(dias: string[]) {
     const message = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 8192,
-      messages: [{ role: 'user', content: prompt }],
+      messages: [{ role: 'user', content: buildPrompt(dias) }],
     })
     const texto = message.content[0].type === 'text' ? message.content[0].text : ''
     const limpio = texto.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
-    contenido = JSON.parse(limpio)
+    return JSON.parse(limpio) as object[]
+  }
+
+  let contenido: object
+  try {
+    const [diasA, diasB] = await Promise.all([
+      generarDias(['Lunes', 'Martes', 'Miércoles', 'Jueves']),
+      generarDias(['Viernes', 'Sábado', 'Domingo']),
+    ])
+    contenido = {
+      rango,
+      descripcion: `Menú personalizado para ${nombreBebe} — ${rango}`,
+      dias: [...diasA, ...diasB],
+    }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     console.error('Error generando menú:', msg)
