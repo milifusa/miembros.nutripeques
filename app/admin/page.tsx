@@ -4,7 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { Database } from '@/types/database'
 import Stripe from 'stripe'
 import NuevoUsuario from './NuevoUsuario'
-import AccionesUsuario from './AccionesUsuario'
+import MiembrosTabla from './MiembrosTabla'
 import LogoutButton from '@/components/ui/LogoutButton'
 
 type Miembro = Database['public']['Tables']['usuarios']['Row']
@@ -245,241 +245,30 @@ export default async function AdminPage() {
               <h2 style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 20, margin: 0, color: '#1f2937' }}>
                 👥 Miembros ({totalMiembros})
               </h2>
+              <p style={{ margin: '4px 0 0', fontSize: 13, color: '#9ca3af' }}>Haz clic en cualquier miembro para ver sus detalles</p>
             </div>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-                <thead>
-                  <tr style={{ background: '#f8fafc' }}>
-                    {['Email', 'Nombre', 'Registro', '👶 Hijos', '💳 Pago', '🔍 Búsquedas', '📓 Bitácora', '📅 Menús', '🎂 Cumple', '🔄 Sust.', '📥 PDFs', 'Estado', 'Acciones'].map(h => (
-                      <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 600, color: '#374151', fontSize: 13, whiteSpace: 'nowrap', borderBottom: '1px solid #f3f4f6' }}>
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {!miembros?.length && (
-                    <tr>
-                      <td colSpan={13} style={{ padding: '32px', textAlign: 'center', color: '#9ca3af' }}>
-                        Aún no hay miembros registrados
-                      </td>
-                    </tr>
-                  )}
-                  {miembros?.map((m, i) => {
-                    const isBanned = banMap[m.id] ?? false
-                    const nuncaEntro = !lastLoginMap[m.id]
-                    return (
-                      <tr key={m.id} style={{ borderBottom: '1px solid #f9fafb', background: isBanned ? '#fff5f5' : i % 2 === 0 ? 'white' : '#fafafa' }}>
-                        <td style={{ padding: '13px 16px', color: '#1f2937', fontWeight: 500, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {m.email}
-                        </td>
-                        <td style={{ padding: '13px 16px', color: '#374151' }}>
-                          {m.nombre ?? <span style={{ color: '#d1d5db' }}>—</span>}
-                        </td>
-                        <td style={{ padding: '13px 16px', color: '#6b7280', whiteSpace: 'nowrap' }}>
-                          {new Date(m.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}
-                        </td>
-                        <td style={{ padding: '13px 16px', minWidth: 160 }}>
-                          {(hijosMap[m.id] ?? []).length === 0 ? (
-                            <span style={{ color: '#d1d5db', fontSize: 13 }}>—</span>
-                          ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                              {hijosMap[m.id].map(h => {
-                                const fn = new Date(h.fecha_nacimiento + 'T12:00:00')
-                                const hoy = new Date()
-                                const meses = (hoy.getFullYear() - fn.getFullYear()) * 12 + (hoy.getMonth() - fn.getMonth())
-                                const edad = meses < 24 ? `${meses}m` : `${Math.floor(meses / 12)}a`
-                                return (
-                                  <div key={h.id} style={{ background: '#F3E8FF', borderRadius: 8, padding: '4px 10px' }}>
-                                    <span style={{ color: '#7C3AED', fontWeight: 700, fontSize: 13 }}>👶 {h.nombre}</span>
-                                    <span style={{ color: '#9333ea', fontSize: 11, display: 'block' }}>
-                                      {fn.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })} · {edad}
-                                    </span>
-                                  </div>
-                                )
-                              })}
-                            </div>
-                          )}
-                        </td>
-                        <td style={{ padding: '13px 16px', whiteSpace: 'nowrap' }}>
-                          {m.monto_pago != null ? (
-                            <span style={{ background: '#DCFCE7', color: '#15803d', fontWeight: 700, fontSize: 13, padding: '3px 10px', borderRadius: 10 }}>
-                              💳 {(m.monto_pago / 100).toLocaleString('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 })}
-                            </span>
-                          ) : (
-                            <span style={{ background: '#F3F4F6', color: '#6b7280', fontSize: 12, padding: '3px 10px', borderRadius: 10 }}>
-                              Manual
-                            </span>
-                          )}
-                        </td>
-                        <td style={{ padding: '13px 16px', textAlign: 'center' }}>
-                          <span style={{ background: '#FEF3C7', color: '#D97706', fontWeight: 700, fontSize: 13, padding: '3px 10px', borderRadius: 10 }}>
-                            {busquedasMap[m.id] ?? 0}
-                          </span>
-                        </td>
-                        <td style={{ padding: '13px 16px', textAlign: 'center' }}>
-                          <span style={{ background: '#CCFBF1', color: '#0d9488', fontWeight: 700, fontSize: 13, padding: '3px 10px', borderRadius: 10 }}>
-                            {bitacoraMap[m.id] ?? 0}
-                          </span>
-                        </td>
-                        <td style={{ padding: '13px 16px', textAlign: 'center' }}>
-                          <span style={{ background: '#DBEAFE', color: '#1d4ed8', fontWeight: 700, fontSize: 13, padding: '3px 10px', borderRadius: 10 }}>
-                            {menuMap[m.id] ?? 0}
-                          </span>
-                        </td>
-                        <td style={{ padding: '13px 16px', textAlign: 'center' }}>
-                          <span style={{ background: '#FEE2E2', color: '#dc2626', fontWeight: 700, fontSize: 13, padding: '3px 10px', borderRadius: 10 }}>
-                            {cumpleanosMap[m.id] ?? 0}
-                          </span>
-                        </td>
-                        <td style={{ padding: '13px 16px', textAlign: 'center' }}>
-                          <span style={{ background: '#F3E8FF', color: '#7C3AED', fontWeight: 700, fontSize: 13, padding: '3px 10px', borderRadius: 10 }}>
-                            {sustitutosMap[m.id] ?? 0}
-                          </span>
-                        </td>
-                        <td style={{ padding: '13px 16px', textAlign: 'center' }}>
-                          <span style={{ background: '#DBEAFE', color: '#1d4ed8', fontWeight: 700, fontSize: 13, padding: '3px 10px', borderRadius: 10 }}>
-                            {descargasMap[m.id] ?? 0}
-                          </span>
-                        </td>
-                        <td style={{ padding: '13px 16px' }}>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                            <span style={{
-                              background: isBanned ? '#FEE2E2' : '#DCFCE7',
-                              color: isBanned ? '#dc2626' : '#15803d',
-                              fontSize: 12, fontWeight: 600,
-                              padding: '3px 10px', borderRadius: 10, whiteSpace: 'nowrap', display: 'inline-block',
-                            }}>
-                              {isBanned ? '⊘ Bloqueado' : '✓ Activo'}
-                            </span>
-                            {nuncaEntro && !isBanned && (
-                              <span style={{ background: '#FEF3C7', color: '#D97706', fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 10, whiteSpace: 'nowrap', display: 'inline-block' }}>
-                                ⏳ Sin acceder
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td style={{ padding: '13px 16px' }}>
-                          <AccionesUsuario usuarioId={m.id} isBanned={isBanned} />
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          {/* Birthday ideas table */}
-          <div style={{ background: 'white', borderRadius: 20, boxShadow: '0 1px 6px rgba(0,0,0,.06)', overflow: 'hidden', marginBottom: 24 }}>
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 20 }}>🎂</span>
-              <div>
-                <h2 style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 20, margin: 0, color: '#1f2937' }}>
-                  Ideas de cumpleaños ({totalCumpleanos})
-                </h2>
-                <p style={{ margin: 0, fontSize: 13, color: '#6b7280' }}>Últimas 20 generaciones de ideas para cumpleaños</p>
-              </div>
-            </div>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-                <thead>
-                  <tr style={{ background: '#f8fafc' }}>
-                    {['Email', 'Mes', 'Edad bebé', 'País', 'Generado'].map(h => (
-                      <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 600, color: '#374151', fontSize: 13, whiteSpace: 'nowrap', borderBottom: '1px solid #f3f4f6' }}>
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {cumpleanosList.length === 0 && (
-                    <tr>
-                      <td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: '#9ca3af' }}>
-                        Aún no hay ideas de cumpleaños generadas
-                      </td>
-                    </tr>
-                  )}
-                  {cumpleanosList.map((c, i) => (
-                    <tr key={c.id} style={{ borderBottom: '1px solid #f9fafb', background: i % 2 === 0 ? 'white' : '#fafafa' }}>
-                      <td style={{ padding: '12px 16px', color: '#1f2937', fontWeight: 500, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {emailMap[c.usuario_id] ?? <span style={{ color: '#d1d5db' }}>—</span>}
-                      </td>
-                      <td style={{ padding: '12px 16px', color: '#374151' }}>
-                        <span style={{ background: '#FEE2E2', color: '#dc2626', fontWeight: 700, fontSize: 12, padding: '3px 10px', borderRadius: 10 }}>
-                          {c.mes}
-                        </span>
-                      </td>
-                      <td style={{ padding: '12px 16px', color: '#374151' }}>
-                        <span style={{ background: '#F3E8FF', color: '#7C3AED', fontWeight: 700, fontSize: 12, padding: '3px 10px', borderRadius: 10 }}>
-                          {c.edad_meses}m
-                        </span>
-                      </td>
-                      <td style={{ padding: '12px 16px', color: '#6b7280' }}>
-                        {c.pais ?? <span style={{ color: '#d1d5db' }}>—</span>}
-                      </td>
-                      <td style={{ padding: '12px 16px', color: '#6b7280', whiteSpace: 'nowrap', fontSize: 13 }}>
-                        {new Date(c.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Substitute searches table */}
-          <div style={{ background: 'white', borderRadius: 20, boxShadow: '0 1px 6px rgba(0,0,0,.06)', overflow: 'hidden', marginBottom: 24 }}>
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 20 }}>🔄</span>
-              <div>
-                <h2 style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 20, margin: 0, color: '#1f2937' }}>
-                  Búsquedas de sustitutos ({totalSustitutos})
-                </h2>
-                <p style={{ margin: 0, fontSize: 13, color: '#6b7280' }}>Últimas 20 búsquedas de ingredientes sustitutos</p>
-              </div>
-            </div>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-                <thead>
-                  <tr style={{ background: '#f8fafc' }}>
-                    {['Email', 'Ingrediente', 'Edad bebé', 'Consultado'].map(h => (
-                      <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 600, color: '#374151', fontSize: 13, whiteSpace: 'nowrap', borderBottom: '1px solid #f3f4f6' }}>
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {sustitutosList.length === 0 && (
-                    <tr>
-                      <td colSpan={4} style={{ padding: '32px', textAlign: 'center', color: '#9ca3af' }}>
-                        Aún no hay búsquedas de sustitutos registradas
-                      </td>
-                    </tr>
-                  )}
-                  {sustitutosList.map((s, i) => (
-                    <tr key={s.id} style={{ borderBottom: '1px solid #f9fafb', background: i % 2 === 0 ? 'white' : '#fafafa' }}>
-                      <td style={{ padding: '12px 16px', color: '#1f2937', fontWeight: 500, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {emailMap[s.usuario_id] ?? <span style={{ color: '#d1d5db' }}>—</span>}
-                      </td>
-                      <td style={{ padding: '12px 16px' }}>
-                        <span style={{ background: '#FEF3C7', color: '#D97706', fontWeight: 700, fontSize: 12, padding: '3px 10px', borderRadius: 10 }}>
-                          {s.ingrediente}
-                        </span>
-                      </td>
-                      <td style={{ padding: '12px 16px' }}>
-                        <span style={{ background: '#F3E8FF', color: '#7C3AED', fontWeight: 700, fontSize: 12, padding: '3px 10px', borderRadius: 10 }}>
-                          {s.edad_meses}m
-                        </span>
-                      </td>
-                      <td style={{ padding: '12px 16px', color: '#6b7280', whiteSpace: 'nowrap', fontSize: 13 }}>
-                        {new Date(s.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <MiembrosTabla
+              miembros={(miembros ?? []).map(m => ({
+                id: m.id,
+                email: m.email,
+                nombre: m.nombre ?? null,
+                created_at: m.created_at,
+                monto_pago: m.monto_pago ?? null,
+                acceso_activo: null,
+              }))}
+              extras={Object.fromEntries((miembros ?? []).map(m => [m.id, {
+                isBanned: banMap[m.id] ?? false,
+                nuncaEntro: !lastLoginMap[m.id],
+                lastLogin: lastLoginMap[m.id] ?? null,
+                hijos: hijosMap[m.id] ?? [],
+                busquedas: busquedasMap[m.id] ?? 0,
+                bitacora: bitacoraMap[m.id] ?? 0,
+                menus: menuMap[m.id] ?? 0,
+                cumpleanos: cumpleanosMap[m.id] ?? 0,
+                sustitutos: sustitutosMap[m.id] ?? 0,
+                descargas: descargasMap[m.id] ?? 0,
+              }]))}
+            />
           </div>
         </main>
       </div>
