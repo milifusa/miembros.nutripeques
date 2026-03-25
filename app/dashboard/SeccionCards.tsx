@@ -43,6 +43,20 @@ const SECCIONES = [
     href: '/dashboard/alergenos',
     bg: '#FEFCE8', border: '#FEF08A', iconBg: '#FEF9C3',
   },
+  {
+    icon: '🎂',
+    titulo: 'Ideas de cumpleaños',
+    descripcion: 'Pasteles y aperitivos saludables para la fiesta',
+    href: '/dashboard/cumpleanos',
+    bg: '#FFF0F6', border: '#FBCFE8', iconBg: '#FCE7F3',
+  },
+  {
+    icon: '🔄',
+    titulo: 'Sustitutos de ingredientes',
+    descripcion: '¿No tienes un ingrediente? Encuentra el reemplazo ideal',
+    href: '/dashboard/sustitutos',
+    bg: '#F0FDFA', border: '#99F6E4', iconBg: '#CCFBF1',
+  },
 ]
 
 export default function SeccionCards() {
