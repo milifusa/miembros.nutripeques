@@ -211,8 +211,9 @@ export default function CumpleanosGenerador({
   const [numInvitados, setNumInvitados] = useState(10)
   const [generando, setGenerando] = useState(false)
   const [resultado, setResultado] = useState<ResultadoCumpleanos | null>(resultadoGuardado)
+  const [generadoEsteMes, setGeneradoEsteMes] = useState(resultadoGuardado !== null)
   const [error, setError] = useState('')
-  const yaGenerado = resultadoGuardado !== null
+  const yaGenerado = generadoEsteMes
 
   async function generarIdeas() {
     setGenerando(true)
@@ -230,6 +231,7 @@ export default function CumpleanosGenerador({
         return
       }
       setResultado(data as ResultadoCumpleanos)
+      setGeneradoEsteMes(true)
     } catch {
       setError('Error de conexión. Intenta de nuevo.')
     } finally {

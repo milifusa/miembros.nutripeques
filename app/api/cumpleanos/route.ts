@@ -86,9 +86,9 @@ Genera 3 pasteles y 15 aperitivos saludables. Sin azúcar refinada, sin miel (si
     const limpio = texto.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
     const data = JSON.parse(limpio)
 
-    // Save to cache (fire and forget)
+    // Guardar en BD (insert; si ya existe el registro del mes, actualizar)
     if (hijoId) {
-      db.from('ideas_cumpleanos').upsert({
+      const saveResult = await db.from('ideas_cumpleanos').insert({
         usuario_id: user.id,
         hijo_id: hijoId,
         mes: mesActual,
@@ -96,7 +96,15 @@ Genera 3 pasteles y 15 aperitivos saludables. Sin azúcar refinada, sin miel (si
         num_invitados: numInvitados,
         pais,
         resultado: data,
-      }, { onConflict: 'hijo_id,mes' }).then(() => null, () => null)
+      })
+      // Si falla por duplicado (unique constraint), intentar update
+      if (saveResult.error) {
+        await db.from('ideas_cumpleanos')
+          .update({ resultado: data, num_invitados: numInvitados })
+          .eq('hijo_id', hijoId)
+          .eq('mes', mesActual)
+          .then(() => null, () => null)
+      }
     }
 
     return NextResponse.json(data)
