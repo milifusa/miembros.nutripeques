@@ -29,6 +29,20 @@ const SECCIONES = [
     href: '/dashboard/bitacora',
     bg: '#FFF0F6', border: '#FBCFE8', iconBg: '#FCE7F3',
   },
+  {
+    icon: '📊',
+    titulo: 'Texturas y etapas',
+    descripcion: 'Guía de progresión de texturas según la edad',
+    href: '/dashboard/texturas',
+    bg: '#FFF7ED', border: '#FED7AA', iconBg: '#FFEDD5',
+  },
+  {
+    icon: '⚠️',
+    titulo: 'Plan de alérgenos',
+    descripcion: 'Calendario personalizado para introducir alérgenos',
+    href: '/dashboard/alergenos',
+    bg: '#FEFCE8', border: '#FEF08A', iconBg: '#FEF9C3',
+  },
 ]
 
 export default function SeccionCards() {

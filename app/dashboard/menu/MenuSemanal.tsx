@@ -382,6 +382,211 @@ function ComidaCard({
   )
 }
 
+// ─── Lista de compras ─────────────────────────────────────────────────────────
+type CategoriaCompras = {
+  emoji: string
+  label: string
+  keywords: string[]
+  items: string[]
+}
+
+function extraerIngredientes(contenido: MenuContenido): CategoriaCompras[] {
+  const categorias: CategoriaCompras[] = [
+    {
+      emoji: '🥦', label: 'Frutas y verduras',
+      keywords: ['plátano','platano','manzana','pera','zanahoria','calabaza','espinaca','brócoli','brocoli','papa','camote','aguacate','mango','durazno','ciruela','uva','sandía','sandia','melón','melon','jitomate','tomate','betabel','chayote','verdura','fruta','vegetal','hortaliza'],
+      items: [],
+    },
+    {
+      emoji: '🥩', label: 'Proteínas',
+      keywords: ['pollo','res','cerdo','pescado','salmón','salmon','atún','atun','huevo','frijol','lenteja','garbanzo','tofu','pavo','carne','proteína','proteina','leguminosa'],
+      items: [],
+    },
+    {
+      emoji: '🌾', label: 'Cereales y granos',
+      keywords: ['arroz','avena','pan','tortilla','pasta','maíz','maiz','cereal','quinoa','amaranto','trigo'],
+      items: [],
+    },
+    {
+      emoji: '🥛', label: 'Lácteos',
+      keywords: ['leche','yogur','yogurt','queso','crema','mantequilla'],
+      items: [],
+    },
+    {
+      emoji: '🫙', label: 'Otros',
+      keywords: [],
+      items: [],
+    },
+  ]
+
+  const seen = new Set<string>()
+
+  for (const dia of contenido.dias) {
+    const comidas: (typeof dia.desayuno)[] = [dia.desayuno, dia.comida, dia.merienda, dia.cena]
+    for (const comida of comidas) {
+      for (const ing of (comida.ingredientes ?? [])) {
+        const key = ing.trim().toLowerCase()
+        if (seen.has(key)) continue
+        seen.add(key)
+        const matched = categorias.slice(0, 4).find(cat =>
+          cat.keywords.some(kw => key.includes(kw))
+        )
+        if (matched) {
+          matched.items.push(ing.trim())
+        } else {
+          categorias[4].items.push(ing.trim())
+        }
+      }
+    }
+  }
+
+  return categorias.filter(c => c.items.length > 0)
+}
+
+const CATEGORIA_COLORS: Record<string, { bg: string; color: string; border: string }> = {
+  '🥦 Frutas y verduras': { bg: '#F0FDF4', color: '#15803d', border: '#86EFAC' },
+  '🥩 Proteínas': { bg: '#FFF7ED', color: '#C2410C', border: '#FED7AA' },
+  '🌾 Cereales y granos': { bg: '#FEFCE8', color: '#A16207', border: '#FEF08A' },
+  '🥛 Lácteos': { bg: '#EFF6FF', color: '#1d4ed8', border: '#BFDBFE' },
+  '🫙 Otros': { bg: '#F8FAFC', color: '#475569', border: '#E2E8F0' },
+}
+
+function ListaComprasModal({
+  contenido,
+  onClose,
+}: {
+  contenido: MenuContenido
+  onClose: () => void
+}) {
+  const categorias = extraerIngredientes(contenido)
+  const [checked, setChecked] = useState<Set<string>>(new Set())
+
+  function toggleItem(item: string) {
+    setChecked(prev => {
+      const next = new Set(prev)
+      if (next.has(item)) next.delete(item)
+      else next.add(item)
+      return next
+    })
+  }
+
+  function handlePrint() {
+    window.print()
+  }
+
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 2000,
+        background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+        display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+        padding: '24px 16px', overflowY: 'auto',
+      }}
+      onClick={e => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div style={{
+        background: 'white', borderRadius: 24, maxWidth: 600, width: '100%',
+        boxShadow: '0 24px 64px rgba(0,0,0,0.25)', overflow: 'hidden',
+        marginTop: 'auto', marginBottom: 'auto',
+      }}>
+        {/* Header */}
+        <div style={{
+          background: 'linear-gradient(135deg,#F4A340,#E8821A)',
+          padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <div>
+            <h2 style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 22, color: 'white', margin: 0 }}>
+              🛒 Lista de compras semanal
+            </h2>
+            <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, margin: '4px 0 0' }}>
+              {categorias.reduce((acc, c) => acc + c.items.length, 0)} ingredientes en total
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              onClick={handlePrint}
+              style={{
+                background: 'rgba(255,255,255,0.2)', color: 'white', border: '1px solid rgba(255,255,255,0.4)',
+                borderRadius: 10, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                fontFamily: "'Outfit',sans-serif",
+              }}
+            >
+              🖨️ Imprimir
+            </button>
+            <button
+              onClick={onClose}
+              style={{
+                background: 'rgba(255,255,255,0.2)', color: 'white', border: '1px solid rgba(255,255,255,0.4)',
+                borderRadius: 10, width: 36, height: 36, fontSize: 18, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div style={{ padding: '24px', maxHeight: '65vh', overflowY: 'auto' }}>
+          {categorias.map(cat => {
+            const catKey = `${cat.emoji} ${cat.label}`
+            const colores = CATEGORIA_COLORS[catKey] ?? { bg: '#f8fafc', color: '#374151', border: '#e5e7eb' }
+            return (
+              <div key={catKey} style={{ marginBottom: 20 }}>
+                <div style={{
+                  background: colores.bg, border: `1px solid ${colores.border}`,
+                  borderRadius: 12, padding: '10px 16px', marginBottom: 8,
+                }}>
+                  <p style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 16, fontWeight: 600, color: colores.color, margin: 0 }}>
+                    {catKey}
+                  </p>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {cat.items.map(item => (
+                    <label
+                      key={item}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
+                        padding: '8px 12px', borderRadius: 10,
+                        background: checked.has(item) ? '#f8fafc' : 'white',
+                        border: '1px solid #f3f4f6',
+                        textDecoration: checked.has(item) ? 'line-through' : 'none',
+                        color: checked.has(item) ? '#9ca3af' : '#374151',
+                        fontSize: 14, transition: 'all .1s',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked.has(item)}
+                        onChange={() => toggleItem(item)}
+                        style={{ width: 16, height: 16, accentColor: '#E8821A', cursor: 'pointer', flexShrink: 0 }}
+                      />
+                      {item}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )
+          })}
+
+          {categorias.length === 0 && (
+            <p style={{ textAlign: 'center', color: '#9ca3af', fontSize: 14, padding: '32px 0' }}>
+              Este menú no tiene ingredientes registrados.
+            </p>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div style={{ padding: '16px 24px', borderTop: '1px solid #f3f4f6', background: '#fafafa' }}>
+          <p style={{ fontSize: 12, color: '#9ca3af', margin: 0, textAlign: 'center' }}>
+            Marca los ingredientes que ya tienes ✓ — haz clic fuera del modal para cerrar
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Menú generado ────────────────────────────────────────────────────────────
 function MenuGenerado({
   contenido,
@@ -399,6 +604,7 @@ function MenuGenerado({
   onSave: (receta: RecetaGuardada) => void
 }) {
   const [diaActivo, setDiaActivo] = useState(0)
+  const [mostrarListaCompras, setMostrarListaCompras] = useState(false)
 
   const dia = contenido.dias[diaActivo]
 
@@ -426,8 +632,28 @@ function MenuGenerado({
             ✓ Válido {getRangoSemana()}
           </span>
           <BotonDescargarPDF contenido={contenido} nombreBebe={nombreBebe} rangoSemana={getRangoSemana()} />
+          <button
+            onClick={() => setMostrarListaCompras(true)}
+            style={{
+              background: 'linear-gradient(135deg,#34d399,#0d9488)',
+              color: 'white', border: 'none', borderRadius: 50,
+              padding: '8px 18px', fontSize: 13, fontWeight: 700,
+              fontFamily: "'Fredoka',sans-serif", cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 6,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            🛒 Lista de compras
+          </button>
         </div>
       </div>
+
+      {mostrarListaCompras && (
+        <ListaComprasModal
+          contenido={contenido}
+          onClose={() => setMostrarListaCompras(false)}
+        />
+      )}
 
       <p style={{ color: '#6b7280', fontSize: 14, margin: '0 0 24px', lineHeight: 1.6 }}>{contenido.descripcion}</p>
 
