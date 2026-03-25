@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createAdminClientRaw } from '@/lib/supabase/admin'
 import Anthropic from '@anthropic-ai/sdk'
 
 export const maxDuration = 60
@@ -24,19 +24,23 @@ export async function POST(req: Request) {
   }
 
   const mesActual = new Date().toISOString().slice(0, 7) // 'YYYY-MM'
-  const admin = createAdminClient()
+  const db = createAdminClientRaw()
 
   // Check if already generated this month for this hijo
   if (hijoId) {
-    const { data: cached } = await admin
-      .from('ideas_cumpleanos')
-      .select('resultado')
-      .eq('hijo_id', hijoId)
-      .eq('mes', mesActual)
-      .maybeSingle()
+    try {
+      const { data: cached } = await db
+        .from('ideas_cumpleanos')
+        .select('resultado')
+        .eq('hijo_id', hijoId)
+        .eq('mes', mesActual)
+        .maybeSingle()
 
-    if (cached) {
-      return NextResponse.json({ ...cached.resultado, fromCache: true })
+      if (cached) {
+        return NextResponse.json({ ...(cached.resultado as object), fromCache: true })
+      }
+    } catch {
+      // Table may not exist yet, continue to generate
     }
   }
 
@@ -82,9 +86,9 @@ Genera 3 pasteles y 15 aperitivos saludables. Sin azúcar refinada, sin miel (si
     const limpio = texto.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
     const data = JSON.parse(limpio)
 
-    // Save to cache
+    // Save to cache (fire and forget)
     if (hijoId) {
-      await admin.from('ideas_cumpleanos').upsert({
+      db.from('ideas_cumpleanos').upsert({
         usuario_id: user.id,
         hijo_id: hijoId,
         mes: mesActual,
@@ -92,9 +96,7 @@ Genera 3 pasteles y 15 aperitivos saludables. Sin azúcar refinada, sin miel (si
         num_invitados: numInvitados,
         pais,
         resultado: data,
-      }, { onConflict: 'hijo_id,mes' }).catch(() => {
-        // Ignore save errors — table may not exist yet
-      })
+      }, { onConflict: 'hijo_id,mes' }).then(() => null, () => null)
     }
 
     return NextResponse.json(data)
@@ -116,14 +118,16 @@ export async function GET(req: Request) {
 
   if (!hijoId) return NextResponse.json({ data: null })
 
-  const admin = createAdminClient()
-  const { data } = await admin
-    .from('ideas_cumpleanos')
-    .select('resultado, created_at')
-    .eq('hijo_id', hijoId)
-    .eq('mes', mesActual)
-    .maybeSingle()
-    .catch(() => ({ data: null }))
-
-  return NextResponse.json({ data })
+  const db = createAdminClientRaw()
+  try {
+    const { data } = await db
+      .from('ideas_cumpleanos')
+      .select('resultado, created_at')
+      .eq('hijo_id', hijoId)
+      .eq('mes', mesActual)
+      .maybeSingle()
+    return NextResponse.json({ data })
+  } catch {
+    return NextResponse.json({ data: null })
+  }
 }

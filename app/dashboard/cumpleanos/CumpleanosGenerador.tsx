@@ -23,7 +23,7 @@ type Aperitivo = {
   para_edad: string
 }
 
-type ResultadoCumpleanos = {
+export type ResultadoCumpleanos = {
   pasteles: Pastel[]
   aperitivos: Aperitivo[]
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createAdminClientRaw } from '@/lib/supabase/admin'
 import Anthropic from '@anthropic-ai/sdk'
 
 export const maxDuration = 30
@@ -24,25 +24,28 @@ export async function POST(req: Request) {
   }
 
   const ingredienteNorm = ingrediente.trim().toLowerCase()
-  const admin = createAdminClient()
+  const db = createAdminClientRaw()
 
   // Check cache first
-  const { data: cached } = await admin
-    .from('sustitutos_cache')
-    .select('resultado, id')
-    .eq('usuario_id', user.id)
-    .eq('ingrediente', ingredienteNorm)
-    .eq('edad_meses', edadMeses)
-    .maybeSingle()
-    .catch(() => ({ data: null }))
+  try {
+    const { data: cached } = await db
+      .from('sustitutos_cache')
+      .select('resultado, id')
+      .eq('usuario_id', user.id)
+      .eq('ingrediente', ingredienteNorm)
+      .eq('edad_meses', edadMeses)
+      .maybeSingle()
 
-  if (cached) {
-    // Update consultado_at in background
-    admin.from('sustitutos_cache')
-      .update({ consultado_at: new Date().toISOString() })
-      .eq('id', cached.id)
-      .catch(() => {})
-    return NextResponse.json({ ...cached.resultado, fromCache: true })
+    if (cached) {
+      // Update consultado_at in background
+      db.from('sustitutos_cache')
+        .update({ consultado_at: new Date().toISOString() })
+        .eq('id', (cached as { id: string }).id)
+        .then(() => null, () => null)
+      return NextResponse.json({ ...(cached.resultado as object), fromCache: true })
+    }
+  } catch {
+    // Cache unavailable, proceed to generate
   }
 
   const prompt = `Eres una nutricionista pediátrica experta en alimentación complementaria.
@@ -78,14 +81,14 @@ Genera 4-5 sustitutos ordenados de mejor a peor opción para esta edad. Consider
     const limpio = texto.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
     const data = JSON.parse(limpio)
 
-    // Save to cache
-    await admin.from('sustitutos_cache').insert({
+    // Save to cache (fire and forget)
+    db.from('sustitutos_cache').insert({
       usuario_id: user.id,
       ingrediente: ingredienteNorm,
       edad_meses: edadMeses,
       contexto: contexto ?? null,
       resultado: data,
-    }).catch(() => {})
+    }).then(() => null, () => null)
 
     return NextResponse.json(data)
   } catch (err) {

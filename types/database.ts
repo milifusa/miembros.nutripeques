@@ -200,6 +200,60 @@ export interface Database {
         }
         Update: never
       }
+      ideas_cumpleanos: {
+        Row: {
+          id: string
+          usuario_id: string
+          hijo_id: string | null
+          mes: string
+          edad_meses: number
+          num_invitados: number | null
+          pais: string | null
+          resultado: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          usuario_id: string
+          hijo_id?: string | null
+          mes: string
+          edad_meses: number
+          num_invitados?: number | null
+          pais?: string | null
+          resultado: Json
+          created_at?: string
+        }
+        Update: {
+          resultado?: Json
+        }
+        Relationships: []
+      }
+      sustitutos_cache: {
+        Row: {
+          id: string
+          usuario_id: string
+          ingrediente: string
+          edad_meses: number
+          contexto: string | null
+          resultado: Json
+          created_at: string
+          consultado_at: string
+        }
+        Insert: {
+          id?: string
+          usuario_id: string
+          ingrediente: string
+          edad_meses: number
+          contexto?: string | null
+          resultado: Json
+          created_at?: string
+          consultado_at?: string
+        }
+        Update: {
+          consultado_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>

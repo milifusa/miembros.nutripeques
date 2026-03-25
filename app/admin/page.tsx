@@ -48,8 +48,8 @@ export default async function AdminPage() {
       limit: 50,
       status: 'expired',
     }).catch(() => ({ data: [] })),
-    admin.from('ideas_cumpleanos').select('id, usuario_id, mes, edad_meses, pais, created_at').order('created_at', { ascending: false }).limit(20).catch(() => ({ data: [] })),
-    admin.from('sustitutos_cache').select('id, usuario_id, ingrediente, edad_meses, created_at').order('created_at', { ascending: false }).limit(20).catch(() => ({ data: [] })),
+    admin.from('ideas_cumpleanos').select('id, usuario_id, mes, edad_meses, pais, created_at').order('created_at', { ascending: false }).limit(20) as unknown as Promise<{ data: { id: string; usuario_id: string; mes: string; edad_meses: number; pais: string | null; created_at: string }[] | null }>,
+    admin.from('sustitutos_cache').select('id, usuario_id, ingrediente, edad_meses, created_at').order('created_at', { ascending: false }).limit(20) as unknown as Promise<{ data: { id: string; usuario_id: string; ingrediente: string; edad_meses: number; created_at: string }[] | null }>,
   ])
 
   // Contar uso por usuario

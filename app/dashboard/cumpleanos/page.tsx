@@ -1,10 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createAdminClientRaw } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import Link from 'next/link'
 import LogoutButton from '@/components/ui/LogoutButton'
-import CumpleanosGenerador from './CumpleanosGenerador'
+import CumpleanosGenerador, { type ResultadoCumpleanos } from './CumpleanosGenerador'
 
 export default async function CumpleanosPage() {
   const supabase = await createClient()
@@ -42,15 +42,18 @@ export default async function CumpleanosPage() {
   let resultadoGuardado = null
   if (hijo) {
     const mesActual = new Date().toISOString().slice(0, 7)
-    const admin = createAdminClient()
-    const { data: cached } = await admin
-      .from('ideas_cumpleanos')
-      .select('resultado')
-      .eq('hijo_id', hijo.id)
-      .eq('mes', mesActual)
-      .maybeSingle()
-      .catch(() => ({ data: null }))
-    resultadoGuardado = cached?.resultado ?? null
+    const db = createAdminClientRaw()
+    try {
+      const { data: cached } = await db
+        .from('ideas_cumpleanos')
+        .select('resultado')
+        .eq('hijo_id', hijo.id)
+        .eq('mes', mesActual)
+        .maybeSingle()
+      resultadoGuardado = ((cached as { resultado: ResultadoCumpleanos } | null)?.resultado) ?? null
+    } catch {
+      // Table may not exist yet
+    }
   }
 
   return (
