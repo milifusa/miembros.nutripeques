@@ -30,6 +30,8 @@ export default async function AdminPage() {
     { data: miembrosEstaSemana },
     authUsersRes,
     sessionesAbandonadas,
+    cumpleanosRes,
+    sustitutosRes,
   ] = await Promise.all([
     admin.from('usuarios').select('*').order('created_at', { ascending: false }) as unknown as Promise<{ data: Miembro[] | null }>,
     admin.from('busquedas_ia').select('id, usuario_id') as unknown as Promise<{ data: { usuario_id: string }[] | null; error: unknown }>,
@@ -46,6 +48,8 @@ export default async function AdminPage() {
       limit: 50,
       status: 'expired',
     }).catch(() => ({ data: [] })),
+    admin.from('ideas_cumpleanos').select('id, usuario_id, mes, edad_meses, pais, created_at').order('created_at', { ascending: false }).limit(20).catch(() => ({ data: [] })),
+    admin.from('sustitutos_cache').select('id, usuario_id, ingrediente, edad_meses, created_at').order('created_at', { ascending: false }).limit(20).catch(() => ({ data: [] })),
   ])
 
   // Contar uso por usuario
@@ -93,12 +97,23 @@ export default async function AdminPage() {
   const totalRevenueCents = miembros?.reduce((sum, m) => sum + (m.monto_pago ?? 0), 0) ?? 0
   const totalRevenueMXN = (totalRevenueCents / 100).toLocaleString('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 })
 
+  const cumpleanosList = (cumpleanosRes as { data: { id: string; usuario_id: string; mes: string; edad_meses: number; pais: string | null; created_at: string }[] | null }).data ?? []
+  const sustitutosList = (sustitutosRes as { data: { id: string; usuario_id: string; ingrediente: string; edad_meses: number; created_at: string }[] | null }).data ?? []
+  const totalCumpleanos = cumpleanosList.length
+  const totalSustitutos = sustitutosList.length
+
+  // Email lookup map
+  const emailMap: Record<string, string> = {}
+  miembros?.forEach(m => { emailMap[m.id] = m.email })
+
   const stats = [
     { label: 'Total miembros', value: totalMiembros, icon: '👥', color: '#CCFBF1', text: '#0d9488' },
     { label: 'Búsquedas IA hoy', value: totalBusquedasHoy, icon: '🔍', color: '#FEF3C7', text: '#D97706' },
     { label: 'Nuevos esta semana', value: totalEstaSemana, icon: '🆕', color: '#EDE9FE', text: '#7C3AED' },
     { label: 'Menús generados', value: totalMenus, icon: '📅', color: '#DBEAFE', text: '#1d4ed8' },
     { label: 'Ingresos totales', value: totalRevenueMXN, icon: '💰', color: '#DCFCE7', text: '#15803d' },
+    { label: 'Ideas cumpleaños', value: totalCumpleanos, icon: '🎂', color: '#FEE2E2', text: '#dc2626' },
+    { label: 'Búsquedas sustitutos', value: totalSustitutos, icon: '🔄', color: '#F3E8FF', text: '#7C3AED' },
   ]
 
   return (
@@ -200,7 +215,7 @@ export default async function AdminPage() {
           )}
 
           {/* Members table */}
-          <div style={{ background: 'white', borderRadius: 20, boxShadow: '0 1px 6px rgba(0,0,0,.06)', overflow: 'hidden' }}>
+          <div style={{ background: 'white', borderRadius: 20, boxShadow: '0 1px 6px rgba(0,0,0,.06)', overflow: 'hidden', marginBottom: 24 }}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid #f3f4f6' }}>
               <h2 style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 20, margin: 0, color: '#1f2937' }}>
                 👥 Miembros ({totalMiembros})
@@ -310,6 +325,118 @@ export default async function AdminPage() {
                       </tr>
                     )
                   })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          {/* Birthday ideas table */}
+          <div style={{ background: 'white', borderRadius: 20, boxShadow: '0 1px 6px rgba(0,0,0,.06)', overflow: 'hidden', marginBottom: 24 }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 20 }}>🎂</span>
+              <div>
+                <h2 style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 20, margin: 0, color: '#1f2937' }}>
+                  Ideas de cumpleaños ({totalCumpleanos})
+                </h2>
+                <p style={{ margin: 0, fontSize: 13, color: '#6b7280' }}>Últimas 20 generaciones de ideas para cumpleaños</p>
+              </div>
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc' }}>
+                    {['Email', 'Mes', 'Edad bebé', 'País', 'Generado'].map(h => (
+                      <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 600, color: '#374151', fontSize: 13, whiteSpace: 'nowrap', borderBottom: '1px solid #f3f4f6' }}>
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {cumpleanosList.length === 0 && (
+                    <tr>
+                      <td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: '#9ca3af' }}>
+                        Aún no hay ideas de cumpleaños generadas
+                      </td>
+                    </tr>
+                  )}
+                  {cumpleanosList.map((c, i) => (
+                    <tr key={c.id} style={{ borderBottom: '1px solid #f9fafb', background: i % 2 === 0 ? 'white' : '#fafafa' }}>
+                      <td style={{ padding: '12px 16px', color: '#1f2937', fontWeight: 500, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {emailMap[c.usuario_id] ?? <span style={{ color: '#d1d5db' }}>—</span>}
+                      </td>
+                      <td style={{ padding: '12px 16px', color: '#374151' }}>
+                        <span style={{ background: '#FEE2E2', color: '#dc2626', fontWeight: 700, fontSize: 12, padding: '3px 10px', borderRadius: 10 }}>
+                          {c.mes}
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px 16px', color: '#374151' }}>
+                        <span style={{ background: '#F3E8FF', color: '#7C3AED', fontWeight: 700, fontSize: 12, padding: '3px 10px', borderRadius: 10 }}>
+                          {c.edad_meses}m
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px 16px', color: '#6b7280' }}>
+                        {c.pais ?? <span style={{ color: '#d1d5db' }}>—</span>}
+                      </td>
+                      <td style={{ padding: '12px 16px', color: '#6b7280', whiteSpace: 'nowrap', fontSize: 13 }}>
+                        {new Date(c.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Substitute searches table */}
+          <div style={{ background: 'white', borderRadius: 20, boxShadow: '0 1px 6px rgba(0,0,0,.06)', overflow: 'hidden', marginBottom: 24 }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 20 }}>🔄</span>
+              <div>
+                <h2 style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 20, margin: 0, color: '#1f2937' }}>
+                  Búsquedas de sustitutos ({totalSustitutos})
+                </h2>
+                <p style={{ margin: 0, fontSize: 13, color: '#6b7280' }}>Últimas 20 búsquedas de ingredientes sustitutos</p>
+              </div>
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc' }}>
+                    {['Email', 'Ingrediente', 'Edad bebé', 'Consultado'].map(h => (
+                      <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 600, color: '#374151', fontSize: 13, whiteSpace: 'nowrap', borderBottom: '1px solid #f3f4f6' }}>
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {sustitutosList.length === 0 && (
+                    <tr>
+                      <td colSpan={4} style={{ padding: '32px', textAlign: 'center', color: '#9ca3af' }}>
+                        Aún no hay búsquedas de sustitutos registradas
+                      </td>
+                    </tr>
+                  )}
+                  {sustitutosList.map((s, i) => (
+                    <tr key={s.id} style={{ borderBottom: '1px solid #f9fafb', background: i % 2 === 0 ? 'white' : '#fafafa' }}>
+                      <td style={{ padding: '12px 16px', color: '#1f2937', fontWeight: 500, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {emailMap[s.usuario_id] ?? <span style={{ color: '#d1d5db' }}>—</span>}
+                      </td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <span style={{ background: '#FEF3C7', color: '#D97706', fontWeight: 700, fontSize: 12, padding: '3px 10px', borderRadius: 10 }}>
+                          {s.ingrediente}
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <span style={{ background: '#F3E8FF', color: '#7C3AED', fontWeight: 700, fontSize: 12, padding: '3px 10px', borderRadius: 10 }}>
+                          {s.edad_meses}m
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px 16px', color: '#6b7280', whiteSpace: 'nowrap', fontSize: 13 }}>
+                        {new Date(s.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>

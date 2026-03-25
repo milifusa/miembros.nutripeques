@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import Anthropic from '@anthropic-ai/sdk'
 
 export const maxDuration = 60
@@ -15,11 +16,28 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'ANTHROPIC_API_KEY no configurada' }, { status: 500 })
   }
 
-  const body = await req.json() as { edadCumple: number; nombreBebe: string; numInvitados: number; pais: string }
-  const { edadCumple, nombreBebe, numInvitados, pais } = body
+  const body = await req.json() as { edadCumple: number; nombreBebe: string; numInvitados: number; pais: string; hijoId?: string }
+  const { edadCumple, nombreBebe, numInvitados, pais, hijoId } = body
 
   if (!edadCumple || !nombreBebe || !pais) {
     return NextResponse.json({ error: 'Faltan datos requeridos' }, { status: 400 })
+  }
+
+  const mesActual = new Date().toISOString().slice(0, 7) // 'YYYY-MM'
+  const admin = createAdminClient()
+
+  // Check if already generated this month for this hijo
+  if (hijoId) {
+    const { data: cached } = await admin
+      .from('ideas_cumpleanos')
+      .select('resultado')
+      .eq('hijo_id', hijoId)
+      .eq('mes', mesActual)
+      .maybeSingle()
+
+    if (cached) {
+      return NextResponse.json({ ...cached.resultado, fromCache: true })
+    }
   }
 
   const prompt = `Eres una nutricionista pediátrica. Genera recetas de cumpleaños saludables para un bebé/niño de ${edadCumple} meses que cumple años en ${pais}.
@@ -64,10 +82,48 @@ Genera 3 pasteles y 15 aperitivos saludables. Sin azúcar refinada, sin miel (si
     const limpio = texto.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
     const data = JSON.parse(limpio)
 
+    // Save to cache
+    if (hijoId) {
+      await admin.from('ideas_cumpleanos').upsert({
+        usuario_id: user.id,
+        hijo_id: hijoId,
+        mes: mesActual,
+        edad_meses: edadCumple,
+        num_invitados: numInvitados,
+        pais,
+        resultado: data,
+      }, { onConflict: 'hijo_id,mes' }).catch(() => {
+        // Ignore save errors — table may not exist yet
+      })
+    }
+
     return NextResponse.json(data)
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     console.error('Error generando cumpleaños:', msg)
     return NextResponse.json({ error: msg }, { status: 500 })
   }
+}
+
+export async function GET(req: Request) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+
+  const { searchParams } = new URL(req.url)
+  const hijoId = searchParams.get('hijoId')
+  const mesActual = new Date().toISOString().slice(0, 7)
+
+  if (!hijoId) return NextResponse.json({ data: null })
+
+  const admin = createAdminClient()
+  const { data } = await admin
+    .from('ideas_cumpleanos')
+    .select('resultado, created_at')
+    .eq('hijo_id', hijoId)
+    .eq('mes', mesActual)
+    .maybeSingle()
+    .catch(() => ({ data: null }))
+
+  return NextResponse.json({ data })
 }

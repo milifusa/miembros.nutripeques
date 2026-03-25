@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import Anthropic from '@anthropic-ai/sdk'
 
 export const maxDuration = 30
@@ -20,6 +21,28 @@ export async function POST(req: Request) {
 
   if (!ingrediente || !edadMeses) {
     return NextResponse.json({ error: 'Faltan datos requeridos' }, { status: 400 })
+  }
+
+  const ingredienteNorm = ingrediente.trim().toLowerCase()
+  const admin = createAdminClient()
+
+  // Check cache first
+  const { data: cached } = await admin
+    .from('sustitutos_cache')
+    .select('resultado, id')
+    .eq('usuario_id', user.id)
+    .eq('ingrediente', ingredienteNorm)
+    .eq('edad_meses', edadMeses)
+    .maybeSingle()
+    .catch(() => ({ data: null }))
+
+  if (cached) {
+    // Update consultado_at in background
+    admin.from('sustitutos_cache')
+      .update({ consultado_at: new Date().toISOString() })
+      .eq('id', cached.id)
+      .catch(() => {})
+    return NextResponse.json({ ...cached.resultado, fromCache: true })
   }
 
   const prompt = `Eres una nutricionista pediátrica experta en alimentación complementaria.
@@ -54,6 +77,15 @@ Genera 4-5 sustitutos ordenados de mejor a peor opción para esta edad. Consider
     const texto = message.content[0].type === 'text' ? message.content[0].text : ''
     const limpio = texto.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
     const data = JSON.parse(limpio)
+
+    // Save to cache
+    await admin.from('sustitutos_cache').insert({
+      usuario_id: user.id,
+      ingrediente: ingredienteNorm,
+      edad_meses: edadMeses,
+      contexto: contexto ?? null,
+      resultado: data,
+    }).catch(() => {})
 
     return NextResponse.json(data)
   } catch (err) {

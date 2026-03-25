@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 
 const BotonDescargarPDF = dynamic(() => import('./BotonDescargarPDF'), { ssr: false })
+const BotonDescargarListaPDF = dynamic(() => import('./ListaComprasPDF'), { ssr: false })
 
 export type Comida = {
   nombre: string
@@ -454,9 +455,11 @@ const CATEGORIA_COLORS: Record<string, { bg: string; color: string; border: stri
 function ListaComprasModal({
   contenido,
   onClose,
+  rangoSemana,
 }: {
   contenido: MenuContenido
   onClose: () => void
+  rangoSemana: string
 }) {
   const categorias = extraerIngredientes(contenido)
   const [checked, setChecked] = useState<Set<string>>(new Set())
@@ -468,10 +471,6 @@ function ListaComprasModal({
       else next.add(item)
       return next
     })
-  }
-
-  function handlePrint() {
-    window.print()
   }
 
   return (
@@ -503,16 +502,7 @@ function ListaComprasModal({
             </p>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button
-              onClick={handlePrint}
-              style={{
-                background: 'rgba(255,255,255,0.2)', color: 'white', border: '1px solid rgba(255,255,255,0.4)',
-                borderRadius: 10, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                fontFamily: "'Outfit',sans-serif",
-              }}
-            >
-              🖨️ Imprimir
-            </button>
+            <BotonDescargarListaPDF categorias={categorias} rangoSemana={rangoSemana} />
             <button
               onClick={onClose}
               style={{
@@ -652,6 +642,7 @@ function MenuGenerado({
         <ListaComprasModal
           contenido={contenido}
           onClose={() => setMostrarListaCompras(false)}
+          rangoSemana={getRangoSemana()}
         />
       )}
 

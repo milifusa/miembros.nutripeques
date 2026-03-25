@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import Link from 'next/link'
@@ -37,6 +38,21 @@ export default async function CumpleanosPage() {
     edadActualMeses = Math.max(0, m)
   }
 
+  // Check for cached birthday ideas this month
+  let resultadoGuardado = null
+  if (hijo) {
+    const mesActual = new Date().toISOString().slice(0, 7)
+    const admin = createAdminClient()
+    const { data: cached } = await admin
+      .from('ideas_cumpleanos')
+      .select('resultado')
+      .eq('hijo_id', hijo.id)
+      .eq('mes', mesActual)
+      .maybeSingle()
+      .catch(() => ({ data: null }))
+    resultadoGuardado = cached?.resultado ?? null
+  }
+
   return (
     <>
       <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -44,8 +60,6 @@ export default async function CumpleanosPage() {
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fredoka:wght@400;500;600&display=swap" rel="stylesheet" />
 
       <div style={{ minHeight: '100vh', background: '#f8fafc', fontFamily: "'Outfit',sans-serif" }}>
-
-        {/* Header */}
         <header style={{
           background: 'white', borderBottom: '1px solid #e5e7eb',
           padding: '0 24px', height: 64,
@@ -67,15 +81,9 @@ export default async function CumpleanosPage() {
           </div>
         </header>
 
-        {/* Main */}
         <main style={{ maxWidth: 800, margin: '0 auto', padding: '32px 20px' }}>
-
-          {/* Page title */}
           <div style={{ marginBottom: 32 }}>
-            <h1 style={{
-              fontFamily: "'Fredoka',sans-serif",
-              fontSize: 32, margin: '0 0 8px', color: '#1f2937',
-            }}>
+            <h1 style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 32, margin: '0 0 8px', color: '#1f2937' }}>
               🎂 Cumpleaños de {nombreBebe}
             </h1>
             <p style={{ color: '#6b7280', margin: 0, fontSize: 15 }}>
@@ -83,12 +91,8 @@ export default async function CumpleanosPage() {
             </p>
           </div>
 
-          {/* No hijo warning */}
           {!hijo && (
-            <div style={{
-              background: '#FFF7ED', border: '1px solid #FED7AA',
-              borderRadius: 16, padding: '18px 22px', marginBottom: 28,
-            }}>
+            <div style={{ background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: 16, padding: '18px 22px', marginBottom: 28 }}>
               <p style={{ margin: 0, color: '#92400E', fontSize: 14 }}>
                 ⚠️ No encontramos un bebé registrado.{' '}
                 <Link href="/dashboard/perfil" style={{ color: '#E8821A', fontWeight: 700, textDecoration: 'none' }}>
@@ -102,8 +106,9 @@ export default async function CumpleanosPage() {
             nombreBebe={nombreBebe}
             edadActualMeses={edadActualMeses}
             pais={pais}
+            hijoId={hijo?.id ?? null}
+            resultadoGuardado={resultadoGuardado}
           />
-
         </main>
       </div>
     </>
