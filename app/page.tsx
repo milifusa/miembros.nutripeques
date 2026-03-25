@@ -159,13 +159,19 @@ export default async function Home() {
                 qué darle a tu bebé
               </h1>
               <p style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 'clamp(17px,2.2vw,22px)', color: '#E8821A', fontWeight: 600, lineHeight: 1.4, margin: '0 0 20px' }}>
-                Menús listos, buscador IA y guías de nutrióloga — todo en un solo lugar 🥄
+                Menús, buscador IA, alérgenos, texturas, cumpleaños y guías — todo en un solo lugar 🥄
               </p>
               <p style={{ fontSize: 16, color: '#6b7280', lineHeight: 1.75, margin: '0 0 28px' }}>
                 Soy <strong style={{ color: '#1f2937' }}>Liliana</strong>, nutrióloga pediátrica. Creé esta plataforma para que sepas exactamente qué, cómo y cuándo darle a tu bebé — <strong style={{ color: '#0d9488' }}>sin buscar en Google, sin dudar, sin estrés</strong>.
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 32 }}>
-                {['Menú semanal listo — sin improvisar cada día', 'Buscador IA: cualquier alimento, al instante', 'Guías PDF descargables con todo el método'].map((item, i) => (
+                {[
+                  'Menú semanal personalizado + lista de compras en PDF',
+                  'Buscador IA: cualquier alimento, al instante',
+                  'Plan de alérgenos y calculadora de texturas por etapas',
+                  'Ideas de cumpleaños saludables + sustitutos de ingredientes',
+                  'Bitácora del bebé + 10 guías PDF descargables',
+                ].map((item, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'linear-gradient(135deg,#0d9488,#0f766e)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>

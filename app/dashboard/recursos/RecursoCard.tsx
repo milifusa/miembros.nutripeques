@@ -20,6 +20,13 @@ export default function RecursoCard({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={() => {
+        fetch('/api/descargas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ titulo, url: href }),
+        }).catch(() => {})
+      }}
       style={{
         background: 'white', borderRadius: 18, padding: '20px', textDecoration: 'none',
         border: '1px solid #f3f4f6', boxShadow: '0 1px 4px rgba(0,0,0,.04)',

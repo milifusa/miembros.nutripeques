@@ -32,6 +32,9 @@ export default async function AdminPage() {
     sessionesAbandonadas,
     cumpleanosRes,
     sustitutosRes,
+    cumpleanosTodosRes,
+    sustitutosTodosRes,
+    descargasRes,
   ] = await Promise.all([
     admin.from('usuarios').select('*').order('created_at', { ascending: false }) as unknown as Promise<{ data: Miembro[] | null }>,
     admin.from('busquedas_ia').select('id, usuario_id') as unknown as Promise<{ data: { usuario_id: string }[] | null; error: unknown }>,
@@ -50,6 +53,10 @@ export default async function AdminPage() {
     }).catch(() => ({ data: [] })),
     admin.from('ideas_cumpleanos').select('id, usuario_id, mes, edad_meses, pais, created_at').order('created_at', { ascending: false }).limit(20) as unknown as Promise<{ data: { id: string; usuario_id: string; mes: string; edad_meses: number; pais: string | null; created_at: string }[] | null }>,
     admin.from('sustitutos_cache').select('id, usuario_id, ingrediente, edad_meses, created_at').order('created_at', { ascending: false }).limit(20) as unknown as Promise<{ data: { id: string; usuario_id: string; ingrediente: string; edad_meses: number; created_at: string }[] | null }>,
+    // All records for per-user counts
+    admin.from('ideas_cumpleanos').select('usuario_id') as unknown as Promise<{ data: { usuario_id: string }[] | null }>,
+    admin.from('sustitutos_cache').select('usuario_id') as unknown as Promise<{ data: { usuario_id: string }[] | null }>,
+    admin.from('descargas_recursos').select('usuario_id, recurso_titulo, created_at').order('created_at', { ascending: false }).limit(100) as unknown as Promise<{ data: { usuario_id: string; recurso_titulo: string; created_at: string }[] | null }>,
   ])
 
   // Contar uso por usuario
@@ -99,8 +106,25 @@ export default async function AdminPage() {
 
   const cumpleanosList = (cumpleanosRes as { data: { id: string; usuario_id: string; mes: string; edad_meses: number; pais: string | null; created_at: string }[] | null }).data ?? []
   const sustitutosList = (sustitutosRes as { data: { id: string; usuario_id: string; ingrediente: string; edad_meses: number; created_at: string }[] | null }).data ?? []
-  const totalCumpleanos = cumpleanosList.length
-  const totalSustitutos = sustitutosList.length
+  const totalCumpleanos = (cumpleanosTodosRes as { data: { usuario_id: string }[] | null }).data?.length ?? cumpleanosList.length
+  const totalSustitutos = (sustitutosTodosRes as { data: { usuario_id: string }[] | null }).data?.length ?? sustitutosList.length
+
+  const cumpleanosMap: Record<string, number> = {}
+  ;(cumpleanosTodosRes as { data: { usuario_id: string }[] | null }).data?.forEach(r => {
+    cumpleanosMap[r.usuario_id] = (cumpleanosMap[r.usuario_id] ?? 0) + 1
+  })
+
+  const sustitutosMap: Record<string, number> = {}
+  ;(sustitutosTodosRes as { data: { usuario_id: string }[] | null }).data?.forEach(r => {
+    sustitutosMap[r.usuario_id] = (sustitutosMap[r.usuario_id] ?? 0) + 1
+  })
+
+  const descargasList = (descargasRes as { data: { usuario_id: string; recurso_titulo: string; created_at: string }[] | null }).data ?? []
+  const descargasMap: Record<string, number> = {}
+  descargasList.forEach(r => {
+    descargasMap[r.usuario_id] = (descargasMap[r.usuario_id] ?? 0) + 1
+  })
+  const totalDescargas = descargasList.length
 
   // Email lookup map
   const emailMap: Record<string, string> = {}
@@ -114,6 +138,7 @@ export default async function AdminPage() {
     { label: 'Ingresos totales', value: totalRevenueMXN, icon: '💰', color: '#DCFCE7', text: '#15803d' },
     { label: 'Ideas cumpleaños', value: totalCumpleanos, icon: '🎂', color: '#FEE2E2', text: '#dc2626' },
     { label: 'Búsquedas sustitutos', value: totalSustitutos, icon: '🔄', color: '#F3E8FF', text: '#7C3AED' },
+    { label: 'Descargas PDF', value: totalDescargas, icon: '📥', color: '#DBEAFE', text: '#1d4ed8' },
   ]
 
   return (
@@ -225,7 +250,7 @@ export default async function AdminPage() {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
                 <thead>
                   <tr style={{ background: '#f8fafc' }}>
-                    {['Email', 'Nombre', 'Registro', '👶 Hijos', '💳 Pago', '🔍 Búsquedas', '📓 Bitácora', '📅 Menús', 'Estado', 'Acciones'].map(h => (
+                    {['Email', 'Nombre', 'Registro', '👶 Hijos', '💳 Pago', '🔍 Búsquedas', '📓 Bitácora', '📅 Menús', '🎂 Cumple', '🔄 Sust.', '📥 PDFs', 'Estado', 'Acciones'].map(h => (
                       <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 600, color: '#374151', fontSize: 13, whiteSpace: 'nowrap', borderBottom: '1px solid #f3f4f6' }}>
                         {h}
                       </th>
@@ -235,7 +260,7 @@ export default async function AdminPage() {
                 <tbody>
                   {!miembros?.length && (
                     <tr>
-                      <td colSpan={10} style={{ padding: '32px', textAlign: 'center', color: '#9ca3af' }}>
+                      <td colSpan={13} style={{ padding: '32px', textAlign: 'center', color: '#9ca3af' }}>
                         Aún no hay miembros registrados
                       </td>
                     </tr>
@@ -300,6 +325,21 @@ export default async function AdminPage() {
                         <td style={{ padding: '13px 16px', textAlign: 'center' }}>
                           <span style={{ background: '#DBEAFE', color: '#1d4ed8', fontWeight: 700, fontSize: 13, padding: '3px 10px', borderRadius: 10 }}>
                             {menuMap[m.id] ?? 0}
+                          </span>
+                        </td>
+                        <td style={{ padding: '13px 16px', textAlign: 'center' }}>
+                          <span style={{ background: '#FEE2E2', color: '#dc2626', fontWeight: 700, fontSize: 13, padding: '3px 10px', borderRadius: 10 }}>
+                            {cumpleanosMap[m.id] ?? 0}
+                          </span>
+                        </td>
+                        <td style={{ padding: '13px 16px', textAlign: 'center' }}>
+                          <span style={{ background: '#F3E8FF', color: '#7C3AED', fontWeight: 700, fontSize: 13, padding: '3px 10px', borderRadius: 10 }}>
+                            {sustitutosMap[m.id] ?? 0}
+                          </span>
+                        </td>
+                        <td style={{ padding: '13px 16px', textAlign: 'center' }}>
+                          <span style={{ background: '#DBEAFE', color: '#1d4ed8', fontWeight: 700, fontSize: 13, padding: '3px 10px', borderRadius: 10 }}>
+                            {descargasMap[m.id] ?? 0}
                           </span>
                         </td>
                         <td style={{ padding: '13px 16px' }}>

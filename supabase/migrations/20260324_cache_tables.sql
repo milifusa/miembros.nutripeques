@@ -28,3 +28,15 @@ CREATE TABLE IF NOT EXISTS sustitutos_cache (
 ALTER TABLE sustitutos_cache ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "usuarios ven sus sustitutos cache" ON sustitutos_cache
   FOR ALL USING (auth.uid() = usuario_id);
+
+-- Registro de descargas de recursos PDF
+CREATE TABLE IF NOT EXISTS descargas_recursos (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  usuario_id uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  recurso_titulo text NOT NULL,
+  recurso_url text,
+  created_at timestamptz DEFAULT now()
+);
+ALTER TABLE descargas_recursos ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "usuarios ven sus descargas" ON descargas_recursos
+  FOR ALL USING (auth.uid() = usuario_id);
