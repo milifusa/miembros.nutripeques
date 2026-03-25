@@ -194,10 +194,10 @@ function RespuestaCard({ texto, edadUsada, alimentoBuscado }: { texto: string; e
           Esto es solo una muestra 🤖
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, opacity: 0.9, lineHeight: 1.5 }}>
-          Con tu acceso tienes: IA ilimitada · menú semanal personalizado · bitácora del bebé · 10 guías PDF descargables
+          Con tu acceso tienes: IA ilimitada · menú semanal · lista de compras · plan de alérgenos · texturas · sustitutos · ideas de cumpleaños · bitácora del bebé · 10 guías PDF
         </p>
         <p style={{ margin: '0 0 16px', fontSize: 14, fontWeight: 700 }}>
-          Todo por solo $250 MXN — pago único, acceso de por vida
+          Todo por solo $299 MXN — pago único, acceso de por vida
         </p>
         <a
           href="/api/checkout"

@@ -262,7 +262,7 @@ export default async function Home() {
             Con tu acceso único obtienes una plataforma completa con herramientas interactivas, guías descargables y todo el contenido de Liliana — disponible 24/7 desde cualquier dispositivo.
           </p>
 
-          {/* 4 herramientas principales */}
+          {/* Herramientas de la plataforma */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 24, marginBottom: 52 }}>
             <AppScreen
               color1="#0f766e" color2="#0d9488"
@@ -273,7 +273,7 @@ export default async function Home() {
             <AppScreen
               color1="#E8821A" color2="#F4A340"
               emoji="📅" title="Menú Semanal Personalizado"
-              desc="Genera menús completos para la semana según la edad de tu bebé. Descárgalos en PDF con un clic."
+              desc="Genera menús completos para la semana según la edad de tu bebé, con recetas detalladas y lista de compras en PDF."
               tag="Interactivo · PDF"
             />
             <AppScreen
@@ -287,6 +287,30 @@ export default async function Home() {
               emoji="📚" title="Biblioteca de Recursos"
               desc="10 guías PDF descargables en un solo lugar. Accede a ellas cuando quieras, tantas veces como necesites."
               tag="10 PDFs incluidos"
+            />
+            <AppScreen
+              color1="#0369a1" color2="#0284c7"
+              emoji="🥣" title="Guía de Texturas y Etapas"
+              desc="Descubre qué texturas son seguras para cada edad. Avanza con confianza en cada etapa de la alimentación."
+              tag="Por edades"
+            />
+            <AppScreen
+              color1="#b45309" color2="#d97706"
+              emoji="🌰" title="Plan de Alérgenos"
+              desc="Calendario para introducir los 9 alérgenos principales de forma segura, uno a uno, con señales de alerta."
+              tag="Protocolo seguro"
+            />
+            <AppScreen
+              color1="#be185d" color2="#db2777"
+              emoji="🎂" title="Ideas de Cumpleaños"
+              desc="Recetas de pastel saludable y 15 aperitivos nutritivos para celebrar sin azúcar refinada. Se generan una vez al mes."
+              tag="Sin azúcar"
+            />
+            <AppScreen
+              color1="#6d28d9" color2="#7c3aed"
+              emoji="🔄" title="Sustitutos de Ingredientes"
+              desc="¿No tienes un ingrediente? Encuentra alternativas seguras y nutritivas adaptadas a la edad de tu bebé al instante."
+              tag="IA · Instantáneo"
             />
           </div>
 
@@ -313,10 +337,10 @@ export default async function Home() {
             El Método NutriPeques 🥄
           </h2>
           <p style={{ fontSize: 18, opacity: .85, marginBottom: 28, maxWidth: 640, margin: '0 auto 28px', lineHeight: 1.8 }}>
-            Plataforma completa + 10 guías PDF descargables + buscador IA ilimitado + menú semanal + bitácora del bebé — todo incluido, acceso inmediato y de por vida.
+            Plataforma completa + buscador IA + menú semanal + lista de compras + plan de alérgenos + texturas + cumpleaños + sustitutos + bitácora + 10 guías PDF — todo incluido, acceso de por vida.
           </p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 36 }}>
-            {['🤖 IA ilimitada', '📅 Menú semanal', '📓 Bitácora', '📚 10 guías PDF', '♾️ Acceso de por vida', '🛡️ Garantía 7 días'].map(b => (
+            {['🤖 IA ilimitada', '📅 Menú semanal', '🛒 Lista de compras', '🌰 Plan alérgenos', '🥣 Texturas', '🎂 Cumpleaños', '🔄 Sustitutos', '📓 Bitácora', '📚 10 guías PDF', '♾️ Acceso de por vida', '🛡️ Garantía 7 días'].map(b => (
               <span key={b} style={{ background: 'rgba(255,255,255,.1)', border: '1px solid rgba(255,255,255,.2)', padding: '7px 18px', borderRadius: 20, fontSize: 14, fontWeight: 500 }}>{b}</span>
             ))}
           </div>
@@ -470,7 +494,7 @@ export default async function Home() {
         <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 20px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 40 }}>
             {[
-              ['📚', 'TODO EN UN SOLO LUGAR', 'Plataforma, menús, bitácora, guías y buscador IA — todo accesible desde tu celular, en un solo inicio de sesión, sin andar buscando en grupos de Facebook.'],
+              ['📚', 'TODO EN UN SOLO LUGAR', 'Buscador IA, menú semanal, lista de compras, plan de alérgenos, texturas, cumpleaños saludables, sustitutos, bitácora y 10 guías PDF — todo en un solo inicio de sesión, desde tu celular.'],
               ['💖', 'SIEMPRE DISPONIBLE', 'Tu plataforma no caduca. Accede a las 3am cuando tu bebé no quiere dormir. Consulta el buscador IA en el súper. Todo disponible 24/7.'],
               ['🧠', 'CRECE CON TU BEBÉ', 'El contenido cubre de los 6 meses a los 2 años. Conforme crece tu bebé, la plataforma sigue siendo relevante y útil en cada etapa.'],
             ].map(([icon, title, desc], i) => (
@@ -620,7 +644,7 @@ export default async function Home() {
           <h2 style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 'clamp(24px,3.5vw,38px)', textAlign: 'center', marginBottom: 40, color: '#1f2937' }}>Preguntas frecuentes</h2>
           <div style={{ maxWidth: 780, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
             {[
-              ['¿Qué es exactamente lo que compro?', 'Acceso de por vida a una plataforma digital completa que incluye: buscador IA de alimentos ilimitado, generador de menú semanal personalizado, bitácora del bebé y biblioteca con 10 guías PDF descargables. Todo en un solo lugar.'],
+              ['¿Qué es exactamente lo que compro?', 'Acceso de por vida a una plataforma digital completa que incluye: buscador IA ilimitado, menú semanal personalizado con lista de compras, guía de texturas por etapas, plan de alérgenos, ideas de cumpleaños saludables, buscador de sustitutos de ingredientes, bitácora del bebé y 10 guías PDF descargables. Todo en un solo lugar.'],
               ['¿Desde qué edad puedo aplicar el Método NutriPeques?', 'Está diseñado para bebés de 6 meses hasta los 2 años, con contenido específico para cada etapa de desarrollo.'],
               ['¿Es BLW o purés?', 'Los dos. El método incluye BLW, purés, finger foods y una transición gradual entre estilos. Tú decides cuál se adapta mejor a tu bebé.'],
               ['¿Cuándo recibo el acceso?', 'Al instante. En cuanto se procesa tu pago recibes un correo con tu enlace de acceso a la plataforma. Todo está disponible desde el primer minuto.'],
@@ -645,12 +669,17 @@ export default async function Home() {
             Dale a tu bebé el inicio más nutritivo y seguro posible 🥕
           </h2>
           <p style={{ fontSize: 17, opacity: .9, marginBottom: 20, maxWidth: 560, margin: '0 auto 20px', lineHeight: 1.7 }}>
-            Plataforma completa + IA ilimitada + menú semanal + 10 guías PDF — todo lo que necesitas, en un solo lugar, por un solo pago.
+            Plataforma completa + IA ilimitada + menú semanal + lista de compras + alérgenos + texturas + cumpleaños + sustitutos + bitácora + 10 guías PDF — todo lo que necesitas, por un solo pago.
           </p>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 24, flexWrap: 'wrap', marginBottom: 32, opacity: .8, fontSize: 15 }}>
-            <span>🤖 Buscador IA ilimitado</span>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 20, flexWrap: 'wrap', marginBottom: 32, opacity: .8, fontSize: 14 }}>
+            <span>🤖 Buscador IA</span>
             <span>📅 Menú semanal</span>
-            <span>📓 Bitácora del bebé</span>
+            <span>🛒 Lista de compras</span>
+            <span>🌰 Plan alérgenos</span>
+            <span>🥣 Texturas</span>
+            <span>🎂 Cumpleaños</span>
+            <span>🔄 Sustitutos</span>
+            <span>📓 Bitácora</span>
             <span>📚 10 guías PDF</span>
           </div>
           <div style={{ marginBottom: 28 }}>
