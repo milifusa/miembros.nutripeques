@@ -20,6 +20,13 @@ export default async function AdminPage() {
 
   const admin = createAdminClient()
 
+  type BusquedaRow = { usuario_id: string; consulta: string; created_at: string }
+  type BitacoraRow = { usuario_id: string; alimento: string; reaccion: string; aceptacion: number; fecha_introduccion: string }
+  type MenuRow = { usuario_id: string; semana: string; created_at: string }
+  type CumpleanosRow = { usuario_id: string; mes: string; edad_meses: number; pais: string | null; created_at: string }
+  type SustitutoRow = { usuario_id: string; ingrediente: string; edad_meses: number; created_at: string }
+  type DescargaRow = { usuario_id: string; recurso_titulo: string; created_at: string }
+
   const [
     { data: miembros },
     busquedasRes,
@@ -32,14 +39,12 @@ export default async function AdminPage() {
     sessionesAbandonadas,
     cumpleanosRes,
     sustitutosRes,
-    cumpleanosTodosRes,
-    sustitutosTodosRes,
     descargasRes,
   ] = await Promise.all([
     admin.from('usuarios').select('*').order('created_at', { ascending: false }) as unknown as Promise<{ data: Miembro[] | null }>,
-    admin.from('busquedas_ia').select('id, usuario_id') as unknown as Promise<{ data: { usuario_id: string }[] | null; error: unknown }>,
-    admin.from('bitacora_bebe').select('id, usuario_id') as unknown as Promise<{ data: { usuario_id: string }[] | null; error: unknown }>,
-    admin.from('menus_semanales').select('id, usuario_id') as unknown as Promise<{ data: { usuario_id: string }[] | null; error: unknown }>,
+    admin.from('busquedas_ia').select('usuario_id, consulta, created_at').order('created_at', { ascending: false }).limit(500) as unknown as Promise<{ data: BusquedaRow[] | null }>,
+    admin.from('bitacora_bebe').select('usuario_id, alimento, reaccion, aceptacion, fecha_introduccion').order('fecha_introduccion', { ascending: false }).limit(500) as unknown as Promise<{ data: BitacoraRow[] | null }>,
+    admin.from('menus_semanales').select('usuario_id, semana, created_at').order('created_at', { ascending: false }).limit(200) as unknown as Promise<{ data: MenuRow[] | null }>,
     admin.from('hijos').select('id, usuario_id, nombre, fecha_nacimiento').order('fecha_nacimiento', { ascending: true }) as unknown as Promise<{ data: { id: string; usuario_id: string; nombre: string; fecha_nacimiento: string }[] | null; error: unknown }>,
     admin.from('busquedas_ia').select('id', { count: 'exact' })
       .gte('created_at', new Date(Date.now() - 86400000).toISOString()),
@@ -51,23 +56,11 @@ export default async function AdminPage() {
       limit: 50,
       status: 'expired',
     }).catch(() => ({ data: [] })),
-    admin.from('ideas_cumpleanos').select('id, usuario_id, mes, edad_meses, pais, created_at').order('created_at', { ascending: false }).limit(20) as unknown as Promise<{ data: { id: string; usuario_id: string; mes: string; edad_meses: number; pais: string | null; created_at: string }[] | null }>,
-    admin.from('sustitutos_cache').select('id, usuario_id, ingrediente, edad_meses, created_at').order('created_at', { ascending: false }).limit(20) as unknown as Promise<{ data: { id: string; usuario_id: string; ingrediente: string; edad_meses: number; created_at: string }[] | null }>,
-    // All records for per-user counts
-    admin.from('ideas_cumpleanos').select('usuario_id') as unknown as Promise<{ data: { usuario_id: string }[] | null }>,
-    admin.from('sustitutos_cache').select('usuario_id') as unknown as Promise<{ data: { usuario_id: string }[] | null }>,
-    admin.from('descargas_recursos').select('usuario_id, recurso_titulo, created_at').order('created_at', { ascending: false }).limit(100) as unknown as Promise<{ data: { usuario_id: string; recurso_titulo: string; created_at: string }[] | null }>,
+    admin.from('ideas_cumpleanos').select('usuario_id, mes, edad_meses, pais, created_at').order('created_at', { ascending: false }) as unknown as Promise<{ data: CumpleanosRow[] | null }>,
+    admin.from('sustitutos_cache').select('usuario_id, ingrediente, edad_meses, created_at').order('created_at', { ascending: false }).limit(500) as unknown as Promise<{ data: SustitutoRow[] | null }>,
+    admin.from('descargas_recursos').select('usuario_id, recurso_titulo, created_at').order('created_at', { ascending: false }).limit(300) as unknown as Promise<{ data: DescargaRow[] | null }>,
   ])
 
-  // Contar uso por usuario
-  const busquedasMap: Record<string, number> = {}
-  busquedasRes.data?.forEach(b => { busquedasMap[b.usuario_id] = (busquedasMap[b.usuario_id] ?? 0) + 1 })
-
-  const bitacoraMap: Record<string, number> = {}
-  bitacoraRes.data?.forEach(b => { bitacoraMap[b.usuario_id] = (bitacoraMap[b.usuario_id] ?? 0) + 1 })
-
-  const menuMap: Record<string, number> = {}
-  menuRes.data?.forEach(m => { menuMap[m.usuario_id] = (menuMap[m.usuario_id] ?? 0) + 1 })
 
   const hijosMap: Record<string, { id: string; nombre: string; fecha_nacimiento: string }[]> = {}
   hijosRes.data?.forEach(h => {
@@ -104,31 +97,49 @@ export default async function AdminPage() {
   const totalRevenueCents = miembros?.reduce((sum, m) => sum + (m.monto_pago ?? 0), 0) ?? 0
   const totalRevenueMXN = (totalRevenueCents / 100).toLocaleString('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 })
 
-  const cumpleanosList = (cumpleanosRes as { data: { id: string; usuario_id: string; mes: string; edad_meses: number; pais: string | null; created_at: string }[] | null }).data ?? []
-  const sustitutosList = (sustitutosRes as { data: { id: string; usuario_id: string; ingrediente: string; edad_meses: number; created_at: string }[] | null }).data ?? []
-  const totalCumpleanos = (cumpleanosTodosRes as { data: { usuario_id: string }[] | null }).data?.length ?? cumpleanosList.length
-  const totalSustitutos = (sustitutosTodosRes as { data: { usuario_id: string }[] | null }).data?.length ?? sustitutosList.length
-
-  const cumpleanosMap: Record<string, number> = {}
-  ;(cumpleanosTodosRes as { data: { usuario_id: string }[] | null }).data?.forEach(r => {
-    cumpleanosMap[r.usuario_id] = (cumpleanosMap[r.usuario_id] ?? 0) + 1
+  // Build per-user item lists
+  const busquedasByUser: Record<string, { consulta: string; created_at: string }[]> = {}
+  busquedasRes.data?.forEach(r => {
+    if (!busquedasByUser[r.usuario_id]) busquedasByUser[r.usuario_id] = []
+    busquedasByUser[r.usuario_id].push({ consulta: r.consulta, created_at: r.created_at })
   })
 
-  const sustitutosMap: Record<string, number> = {}
-  ;(sustitutosTodosRes as { data: { usuario_id: string }[] | null }).data?.forEach(r => {
-    sustitutosMap[r.usuario_id] = (sustitutosMap[r.usuario_id] ?? 0) + 1
+  const bitacoraByUser: Record<string, { alimento: string; reaccion: string; aceptacion: number; fecha_introduccion: string }[]> = {}
+  bitacoraRes.data?.forEach(r => {
+    if (!bitacoraByUser[r.usuario_id]) bitacoraByUser[r.usuario_id] = []
+    bitacoraByUser[r.usuario_id].push({ alimento: r.alimento, reaccion: r.reaccion, aceptacion: r.aceptacion, fecha_introduccion: r.fecha_introduccion })
   })
 
-  const descargasList = (descargasRes as { data: { usuario_id: string; recurso_titulo: string; created_at: string }[] | null }).data ?? []
-  const descargasMap: Record<string, number> = {}
-  descargasList.forEach(r => {
-    descargasMap[r.usuario_id] = (descargasMap[r.usuario_id] ?? 0) + 1
+  const menusByUser: Record<string, { semana: string; created_at: string }[]> = {}
+  menuRes.data?.forEach(r => {
+    if (!menusByUser[r.usuario_id]) menusByUser[r.usuario_id] = []
+    menusByUser[r.usuario_id].push({ semana: r.semana, created_at: r.created_at })
   })
-  const totalDescargas = descargasList.length
 
-  // Email lookup map
-  const emailMap: Record<string, string> = {}
-  miembros?.forEach(m => { emailMap[m.id] = m.email })
+  const cumpleanosData = (cumpleanosRes as { data: CumpleanosRow[] | null }).data ?? []
+  const cumpleanosMap: Record<string, { mes: string; edad_meses: number; pais: string | null; created_at: string }[]> = {}
+  cumpleanosData.forEach(r => {
+    if (!cumpleanosMap[r.usuario_id]) cumpleanosMap[r.usuario_id] = []
+    cumpleanosMap[r.usuario_id].push({ mes: r.mes, edad_meses: r.edad_meses, pais: r.pais, created_at: r.created_at })
+  })
+
+  const sustitutosData = (sustitutosRes as { data: SustitutoRow[] | null }).data ?? []
+  const sustitutosMap: Record<string, { ingrediente: string; edad_meses: number; created_at: string }[]> = {}
+  sustitutosData.forEach(r => {
+    if (!sustitutosMap[r.usuario_id]) sustitutosMap[r.usuario_id] = []
+    sustitutosMap[r.usuario_id].push({ ingrediente: r.ingrediente, edad_meses: r.edad_meses, created_at: r.created_at })
+  })
+
+  const descargasData = (descargasRes as { data: DescargaRow[] | null }).data ?? []
+  const descargasMap: Record<string, { recurso_titulo: string; created_at: string }[]> = {}
+  descargasData.forEach(r => {
+    if (!descargasMap[r.usuario_id]) descargasMap[r.usuario_id] = []
+    descargasMap[r.usuario_id].push({ recurso_titulo: r.recurso_titulo, created_at: r.created_at })
+  })
+
+  const totalCumpleanos = cumpleanosData.length
+  const totalSustitutos = sustitutosData.length
+  const totalDescargas = descargasData.length
 
   const stats = [
     { label: 'Total miembros', value: totalMiembros, icon: '👥', color: '#CCFBF1', text: '#0d9488' },
@@ -261,12 +272,12 @@ export default async function AdminPage() {
                 nuncaEntro: !lastLoginMap[m.id],
                 lastLogin: lastLoginMap[m.id] ?? null,
                 hijos: hijosMap[m.id] ?? [],
-                busquedas: busquedasMap[m.id] ?? 0,
-                bitacora: bitacoraMap[m.id] ?? 0,
-                menus: menuMap[m.id] ?? 0,
-                cumpleanos: cumpleanosMap[m.id] ?? 0,
-                sustitutos: sustitutosMap[m.id] ?? 0,
-                descargas: descargasMap[m.id] ?? 0,
+                busquedas: busquedasByUser[m.id] ?? [],
+                bitacora: bitacoraByUser[m.id] ?? [],
+                menus: menusByUser[m.id] ?? [],
+                cumpleanos: cumpleanosMap[m.id] ?? [],
+                sustitutos: sustitutosMap[m.id] ?? [],
+                descargas: descargasMap[m.id] ?? [],
               }]))}
             />
           </div>

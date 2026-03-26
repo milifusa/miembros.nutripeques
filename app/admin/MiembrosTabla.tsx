@@ -4,6 +4,12 @@ import { useState } from 'react'
 import AccionesUsuario from './AccionesUsuario'
 
 type Hijo = { id: string; nombre: string; fecha_nacimiento: string }
+type BusquedaItem = { consulta: string; created_at: string }
+type BitacoraItem = { alimento: string; reaccion: string; aceptacion: number; fecha_introduccion: string }
+type MenuItem = { semana: string; created_at: string }
+type CumpleanosItem = { mes: string; edad_meses: number; pais: string | null; created_at: string }
+type SustitutoItem = { ingrediente: string; edad_meses: number; created_at: string }
+type DescargaItem = { recurso_titulo: string; created_at: string }
 
 type Miembro = {
   id: string
@@ -14,17 +20,17 @@ type Miembro = {
   acceso_activo: boolean | null
 }
 
-type MiembroExtra = {
+export type MiembroExtra = {
   isBanned: boolean
   nuncaEntro: boolean
   lastLogin: string | null
   hijos: Hijo[]
-  busquedas: number
-  bitacora: number
-  menus: number
-  cumpleanos: number
-  sustitutos: number
-  descargas: number
+  busquedas: BusquedaItem[]
+  bitacora: BitacoraItem[]
+  menus: MenuItem[]
+  cumpleanos: CumpleanosItem[]
+  sustitutos: SustitutoItem[]
+  descargas: DescargaItem[]
 }
 
 function calcEdad(fechaNac: string) {
@@ -46,11 +52,41 @@ function Badge({ bg, color, children }: { bg: string; color: string; children: R
   )
 }
 
-function StatRow({ icon, label, value, bg, color }: { icon: string; label: string; value: number; bg: string; color: string }) {
-  return (
+const REACCION_COLORS: Record<string, { bg: string; color: string }> = {
+  ninguna: { bg: '#DCFCE7', color: '#15803d' },
+  leve: { bg: '#FEF3C7', color: '#D97706' },
+  moderada: { bg: '#FEE2E2', color: '#dc2626' },
+}
+
+function ActivitySection({
+  icon, label, count, bg, color, children,
+}: {
+  icon: string; label: string; count: number; bg: string; color: string; children: React.ReactNode
+}) {
+  const [open, setOpen] = useState(false)
+  if (count === 0) return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #f3f4f6' }}>
       <span style={{ fontSize: 14, color: '#374151' }}>{icon} {label}</span>
-      <Badge bg={bg} color={color}>{value}</Badge>
+      <Badge bg="#f3f4f6" color="#9ca3af">0</Badge>
+    </div>
+  )
+  return (
+    <div style={{ borderBottom: '1px solid #f3f4f6' }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', background: 'none', border: 'none', cursor: 'pointer' }}
+      >
+        <span style={{ fontSize: 14, color: '#374151', fontFamily: 'inherit' }}>{icon} {label}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Badge bg={bg} color={color}>{count}</Badge>
+          <span style={{ color: '#9ca3af', fontSize: 14 }}>{open ? '▲' : '▼'}</span>
+        </div>
+      </button>
+      {open && (
+        <div style={{ paddingBottom: 10 }}>
+          {children}
+        </div>
+      )}
     </div>
   )
 }
@@ -63,13 +99,13 @@ function MiembroModal({ m, extra, onClose }: { m: Miembro; extra: MiembroExtra; 
     >
       <div
         onClick={e => e.stopPropagation()}
-        style={{ background: 'white', borderRadius: 20, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,.2)' }}
+        style={{ background: 'white', borderRadius: 20, width: '100%', maxWidth: 540, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,.2)' }}
       >
         {/* Header */}
         <div style={{ padding: '24px 24px 16px', borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-              <div style={{ width: 42, height: 42, borderRadius: '50%', background: '#CCFBF1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
+              <div style={{ width: 42, height: 42, borderRadius: '50%', background: '#CCFBF1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#0d9488', fontSize: 18 }}>
                 {m.nombre ? m.nombre[0].toUpperCase() : '?'}
               </div>
               <div>
@@ -90,10 +126,8 @@ function MiembroModal({ m, extra, onClose }: { m: Miembro; extra: MiembroExtra; 
           </div>
           <button
             onClick={onClose}
-            style={{ background: '#f3f4f6', border: 'none', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', fontSize: 18, color: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          >
-            ×
-          </button>
+            style={{ background: '#f3f4f6', border: 'none', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', fontSize: 18, color: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+          >×</button>
         </div>
 
         <div style={{ padding: '16px 24px' }}>
@@ -141,18 +175,78 @@ function MiembroModal({ m, extra, onClose }: { m: Miembro; extra: MiembroExtra; 
             </div>
           )}
 
-          {/* Uso de herramientas */}
+          {/* Actividad */}
           <div style={{ marginBottom: 20 }}>
             <p style={{ margin: '0 0 6px', fontSize: 13, fontWeight: 600, color: '#374151' }}>Actividad</p>
-            <StatRow icon="🔍" label="Búsquedas IA" value={extra.busquedas} bg="#FEF3C7" color="#D97706" />
-            <StatRow icon="📓" label="Bitácora del bebé" value={extra.bitacora} bg="#CCFBF1" color="#0d9488" />
-            <StatRow icon="📅" label="Menús generados" value={extra.menus} bg="#DBEAFE" color="#1d4ed8" />
-            <StatRow icon="🎂" label="Ideas de cumpleaños" value={extra.cumpleanos} bg="#FEE2E2" color="#dc2626" />
-            <StatRow icon="🔄" label="Sustitutos buscados" value={extra.sustitutos} bg="#F3E8FF" color="#7C3AED" />
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0' }}>
-              <span style={{ fontSize: 14, color: '#374151' }}>📥 PDFs descargados</span>
-              <Badge bg="#DBEAFE" color="#1d4ed8">{extra.descargas}</Badge>
-            </div>
+
+            <ActivitySection icon="🔍" label="Búsquedas IA" count={extra.busquedas.length} bg="#FEF3C7" color="#D97706">
+              {extra.busquedas.map((b, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '6px 10px', background: i % 2 === 0 ? '#fffbeb' : 'white', borderRadius: 8, marginBottom: 2, gap: 8 }}>
+                  <span style={{ fontSize: 13, color: '#374151', flex: 1 }}>{b.consulta}</span>
+                  <span style={{ fontSize: 11, color: '#9ca3af', whiteSpace: 'nowrap' }}>{fmtDate(b.created_at)}</span>
+                </div>
+              ))}
+            </ActivitySection>
+
+            <ActivitySection icon="📓" label="Bitácora del bebé" count={extra.bitacora.length} bg="#CCFBF1" color="#0d9488">
+              {extra.bitacora.map((b, i) => {
+                const rc = REACCION_COLORS[b.reaccion] ?? REACCION_COLORS.ninguna
+                return (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', background: i % 2 === 0 ? '#f0fdfa' : 'white', borderRadius: 8, marginBottom: 2, gap: 8 }}>
+                    <div style={{ flex: 1 }}>
+                      <span style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>{b.alimento}</span>
+                      <span style={{ marginLeft: 8, fontSize: 11, background: rc.bg, color: rc.color, padding: '1px 6px', borderRadius: 6, fontWeight: 600 }}>{b.reaccion}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontSize: 12, color: '#6b7280' }}>{'★'.repeat(b.aceptacion)}{'☆'.repeat(5 - b.aceptacion)}</span>
+                      <span style={{ fontSize: 11, color: '#9ca3af', whiteSpace: 'nowrap' }}>{fmtDate(b.fecha_introduccion)}</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </ActivitySection>
+
+            <ActivitySection icon="📅" label="Menús generados" count={extra.menus.length} bg="#DBEAFE" color="#1d4ed8">
+              {extra.menus.map((mn, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: i % 2 === 0 ? '#eff6ff' : 'white', borderRadius: 8, marginBottom: 2 }}>
+                  <span style={{ fontSize: 13, color: '#374151' }}>Semana del {fmtDate(mn.semana)}</span>
+                  <span style={{ fontSize: 11, color: '#9ca3af' }}>{fmtDate(mn.created_at)}</span>
+                </div>
+              ))}
+            </ActivitySection>
+
+            <ActivitySection icon="🎂" label="Ideas de cumpleaños" count={extra.cumpleanos.length} bg="#FEE2E2" color="#dc2626">
+              {extra.cumpleanos.map((c, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', background: i % 2 === 0 ? '#fff1f2' : 'white', borderRadius: 8, marginBottom: 2, gap: 8 }}>
+                  <div style={{ flex: 1 }}>
+                    <span style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>{c.edad_meses} meses</span>
+                    {c.pais && <span style={{ marginLeft: 8, fontSize: 12, color: '#6b7280' }}>📍{c.pais}</span>}
+                  </div>
+                  <span style={{ fontSize: 11, color: '#9ca3af', whiteSpace: 'nowrap' }}>{c.mes}</span>
+                </div>
+              ))}
+            </ActivitySection>
+
+            <ActivitySection icon="🔄" label="Sustitutos buscados" count={extra.sustitutos.length} bg="#F3E8FF" color="#7C3AED">
+              {extra.sustitutos.map((s, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', background: i % 2 === 0 ? '#faf5ff' : 'white', borderRadius: 8, marginBottom: 2, gap: 8 }}>
+                  <span style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>{s.ingrediente}</span>
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    <span style={{ fontSize: 11, background: '#F3E8FF', color: '#7C3AED', padding: '1px 6px', borderRadius: 6, fontWeight: 600 }}>{s.edad_meses}m</span>
+                    <span style={{ fontSize: 11, color: '#9ca3af', whiteSpace: 'nowrap' }}>{fmtDate(s.created_at)}</span>
+                  </div>
+                </div>
+              ))}
+            </ActivitySection>
+
+            <ActivitySection icon="📥" label="PDFs descargados" count={extra.descargas.length} bg="#DBEAFE" color="#1d4ed8">
+              {extra.descargas.map((d, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: i % 2 === 0 ? '#eff6ff' : 'white', borderRadius: 8, marginBottom: 2, gap: 8 }}>
+                  <span style={{ fontSize: 13, color: '#374151', flex: 1 }}>{d.recurso_titulo}</span>
+                  <span style={{ fontSize: 11, color: '#9ca3af', whiteSpace: 'nowrap' }}>{fmtDate(d.created_at)}</span>
+                </div>
+              ))}
+            </ActivitySection>
           </div>
 
           {/* Acciones */}
@@ -197,8 +291,8 @@ export default function MiembrosTabla({
               </tr>
             )}
             {miembros.map((m, i) => {
-              const ex = extras[m.id] ?? { isBanned: false, nuncaEntro: true, lastLogin: null, hijos: [], busquedas: 0, bitacora: 0, menus: 0, cumpleanos: 0, sustitutos: 0, descargas: 0 }
-              const totalUso = ex.busquedas + ex.bitacora + ex.menus + ex.cumpleanos + ex.sustitutos + ex.descargas
+              const ex = extras[m.id] ?? { isBanned: false, nuncaEntro: true, lastLogin: null, hijos: [], busquedas: [], bitacora: [], menus: [], cumpleanos: [], sustitutos: [], descargas: [] }
+              const totalUso = ex.busquedas.length + ex.bitacora.length + ex.menus.length + ex.cumpleanos.length + ex.sustitutos.length + ex.descargas.length
               return (
                 <tr
                   key={m.id}
@@ -233,12 +327,12 @@ export default function MiembrosTabla({
                   </td>
                   <td style={{ padding: '13px 16px' }}>
                     <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                      {ex.busquedas > 0 && <span title="Búsquedas IA" style={{ background: '#FEF3C7', color: '#D97706', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 8 }}>🔍{ex.busquedas}</span>}
-                      {ex.menus > 0 && <span title="Menús" style={{ background: '#DBEAFE', color: '#1d4ed8', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 8 }}>📅{ex.menus}</span>}
-                      {ex.bitacora > 0 && <span title="Bitácora" style={{ background: '#CCFBF1', color: '#0d9488', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 8 }}>📓{ex.bitacora}</span>}
-                      {ex.cumpleanos > 0 && <span title="Cumpleaños" style={{ background: '#FEE2E2', color: '#dc2626', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 8 }}>🎂{ex.cumpleanos}</span>}
-                      {ex.sustitutos > 0 && <span title="Sustitutos" style={{ background: '#F3E8FF', color: '#7C3AED', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 8 }}>🔄{ex.sustitutos}</span>}
-                      {ex.descargas > 0 && <span title="PDFs" style={{ background: '#DBEAFE', color: '#1d4ed8', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 8 }}>📥{ex.descargas}</span>}
+                      {ex.busquedas.length > 0 && <span title="Búsquedas IA" style={{ background: '#FEF3C7', color: '#D97706', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 8 }}>🔍{ex.busquedas.length}</span>}
+                      {ex.menus.length > 0 && <span title="Menús" style={{ background: '#DBEAFE', color: '#1d4ed8', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 8 }}>📅{ex.menus.length}</span>}
+                      {ex.bitacora.length > 0 && <span title="Bitácora" style={{ background: '#CCFBF1', color: '#0d9488', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 8 }}>📓{ex.bitacora.length}</span>}
+                      {ex.cumpleanos.length > 0 && <span title="Cumpleaños" style={{ background: '#FEE2E2', color: '#dc2626', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 8 }}>🎂{ex.cumpleanos.length}</span>}
+                      {ex.sustitutos.length > 0 && <span title="Sustitutos" style={{ background: '#F3E8FF', color: '#7C3AED', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 8 }}>🔄{ex.sustitutos.length}</span>}
+                      {ex.descargas.length > 0 && <span title="PDFs" style={{ background: '#DBEAFE', color: '#1d4ed8', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 8 }}>📥{ex.descargas.length}</span>}
                       {totalUso === 0 && <span style={{ color: '#d1d5db', fontSize: 12 }}>Sin actividad</span>}
                     </div>
                   </td>
@@ -265,7 +359,7 @@ export default function MiembrosTabla({
       {selected && (
         <MiembroModal
           m={selected}
-          extra={extras[selected.id] ?? { isBanned: false, nuncaEntro: true, lastLogin: null, hijos: [], busquedas: 0, bitacora: 0, menus: 0, cumpleanos: 0, sustitutos: 0, descargas: 0 }}
+          extra={extras[selected.id] ?? { isBanned: false, nuncaEntro: true, lastLogin: null, hijos: [], busquedas: [], bitacora: [], menus: [], cumpleanos: [], sustitutos: [], descargas: [] }}
           onClose={() => setSelected(null)}
         />
       )}
