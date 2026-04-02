@@ -190,34 +190,6 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ─── HERO — Buscador IA GRATUITO ─── */}
-      <section style={{ background: 'linear-gradient(160deg,#FFFBF5 0%,#CCFBF1 50%,#FFF7ED 100%)', padding: '50px 0 40px', fontFamily: "'Outfit',sans-serif" }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 20px' }}>
-          <div style={{ textAlign: 'center', marginBottom: 32 }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: 'white', borderRadius: 50, padding: '8px 20px', boxShadow: '0 4px 16px rgba(0,0,0,.08)', marginBottom: 16 }}>
-              <span style={{ fontSize: 20 }}>🌿</span>
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#0d9488', letterSpacing: '.5px' }}>HERRAMIENTA GRATUITA · NutriPeques Pro</span>
-            </div>
-            <h1 style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 'clamp(28px,5vw,50px)', fontWeight: 700, color: '#1f2937', lineHeight: 1.2, marginBottom: 12 }}>
-              Buscador Inteligente de<br />
-              <span style={{ color: '#E8821A' }}>Alimentos para Bebés</span> 🥄
-            </h1>
-            <p style={{ fontSize: 17, color: '#6b7280', maxWidth: 520, margin: '0 auto 6px', lineHeight: 1.7 }}>
-              Escribe cualquier alimento y la edad de tu bebé — te digo al instante si es seguro, cómo prepararlo y recetas fáciles 💚
-            </p>
-            <p style={{ fontSize: 13, color: '#0d9488', fontWeight: 600, margin: '0 auto' }}>
-              Esta es solo una muestra de lo que vive tu bebé dentro de la plataforma completa 👇
-            </p>
-          </div>
-          <FoodSearch />
-          <div style={{ textAlign: 'center', marginTop: 16 }}>
-            <a href="#plataforma" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#6b7280', fontSize: 14, textDecoration: 'none', fontWeight: 600 }}>
-              Ver todo lo que incluye la plataforma 👇
-            </a>
-          </div>
-        </div>
-      </section>
-
       {/* ─── ¿TE SUENA ESTO? ─── */}
       <section style={{ background: 'white', padding: '70px 0', fontFamily: "'Outfit',sans-serif" }}>
         <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 20px' }}>
@@ -495,6 +467,34 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* ─── HERO — Buscador IA GRATUITO ─── */}
+      <section style={{ background: 'linear-gradient(160deg,#FFFBF5 0%,#CCFBF1 50%,#FFF7ED 100%)', padding: '50px 0 40px', fontFamily: "'Outfit',sans-serif" }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 20px' }}>
+          <div style={{ textAlign: 'center', marginBottom: 32 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: 'white', borderRadius: 50, padding: '8px 20px', boxShadow: '0 4px 16px rgba(0,0,0,.08)', marginBottom: 16 }}>
+              <span style={{ fontSize: 20 }}>🌿</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#0d9488', letterSpacing: '.5px' }}>HERRAMIENTA GRATUITA · NutriPeques Pro</span>
+            </div>
+            <h1 style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 'clamp(28px,5vw,50px)', fontWeight: 700, color: '#1f2937', lineHeight: 1.2, marginBottom: 12 }}>
+              Buscador Inteligente de<br />
+              <span style={{ color: '#E8821A' }}>Alimentos para Bebés</span> 🥄
+            </h1>
+            <p style={{ fontSize: 17, color: '#6b7280', maxWidth: 520, margin: '0 auto 6px', lineHeight: 1.7 }}>
+              Escribe cualquier alimento y la edad de tu bebé — te digo al instante si es seguro, cómo prepararlo y recetas fáciles 💚
+            </p>
+            <p style={{ fontSize: 13, color: '#0d9488', fontWeight: 600, margin: '0 auto' }}>
+              Esta es solo una muestra de lo que vive tu bebé dentro de la plataforma completa 👇
+            </p>
+          </div>
+          <FoodSearch />
+          <div style={{ textAlign: 'center', marginTop: 16 }}>
+            <a href="#plataforma" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#6b7280', fontSize: 14, textDecoration: 'none', fontWeight: 600 }}>
+              Ver todo lo que incluye la plataforma 👇
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* ─── BENEFICIOS 3 columnas ─── */}
       <section style={{ background: 'linear-gradient(135deg,#0d9488,#0f766e)', padding: '70px 0', color: 'white', fontFamily: "'Outfit',sans-serif" }}>
         <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 20px' }}>
@@ -518,7 +518,6 @@ export default async function Home() {
       <section style={{ background: '#f0fdf4', padding: '70px 0', fontFamily: "'Outfit',sans-serif" }}>
         <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 20px' }}>
           <h2 style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 'clamp(24px,3.5vw,38px)', textAlign: 'center', marginBottom: 8, color: '#1f2937' }}>💬 Lo que dicen las mamás</h2>
-          <p style={{ textAlign: 'center', color: '#6b7280', fontSize: 16, marginBottom: 36 }}>+100k familias nos siguen en redes — esto es lo que viven ellas:</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(300px,1fr))', gap: 20, marginBottom: 40 }}>
             {[
               { text: 'El buscador IA me cambió la vida. Antes de comprar en el súper consulto qué tan seguros son los alimentos para Lucía. ¡Y el menú semanal es un salvavidas total!', name: 'María G.', role: 'mamá de Lucía (8 meses)', img: '/assets/testimonio-1.jpg', initial: 'M' },

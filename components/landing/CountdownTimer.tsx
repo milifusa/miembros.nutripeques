@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 
 // Fecha fija de fin de promoción — cambia esto cuando lances una nueva promo
-const PROMO_END = new Date('2026-03-31T23:59:59-06:00').getTime()
+const PROMO_END = new Date('2026-04-06T23:59:59-06:00').getTime()
 
 function calcTime() {
   const diff = Math.max(0, PROMO_END - Date.now())
