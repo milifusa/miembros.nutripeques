@@ -105,28 +105,13 @@ export default function RecursosManager() {
   }
 
   async function uploadFile(file: File, tipo: string): Promise<string> {
-    const ext = file.name.split('.').pop()
-
-    // 1. Pedir URL firmada al servidor
-    const res = await fetch('/api/admin/upload-url', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tipo, ext }),
-    })
+    const fd = new FormData()
+    fd.append('file', file)
+    fd.append('tipo', tipo)
+    const res = await fetch('/api/admin/upload', { method: 'POST', body: fd })
     const json = await res.json()
-    if (!res.ok) throw new Error(json.error)
-
-    // 2. Subir directo a Supabase (sin límite de tamaño del servidor)
-    const uploadRes = await fetch(json.signedUrl, {
-      method: 'PUT',
-      body: file,
-      headers: { 'Content-Type': file.type },
-    })
-    if (!uploadRes.ok) throw new Error('Error al subir el archivo a Storage')
-
-    // 3. Construir URL pública
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    return `${supabaseUrl}/storage/v1/object/public/recursos/${json.path}`
+    if (!res.ok) throw new Error(json.error ?? 'Error al subir archivo')
+    return json.url as string
   }
 
   async function guardarCategoria() {
