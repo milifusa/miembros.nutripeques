@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import LogoutButton from '@/components/ui/LogoutButton'
@@ -10,13 +11,16 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  // Usar admin client para bypasear RLS en usuarios (productos_activos)
+  const admin = createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [{ data: usuarioRaw }, { data: hijosRaw }] = await Promise.all([
-    supabase
+    (admin as any)
       .from('usuarios')
       .select('nombre, productos_activos')
       .eq('id', user.id)
       .maybeSingle(),
-    supabase
+    (admin as any)
       .from('hijos')
       .select('id, nombre, fecha_nacimiento')
       .eq('usuario_id', user.id)
