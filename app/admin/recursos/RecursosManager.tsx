@@ -53,6 +53,40 @@ export default function RecursosManager() {
   const pdfInputRef = useRef<HTMLInputElement>(null)
   const imgInputRef = useRef<HTMLInputElement>(null)
 
+  // Edición de recurso existente
+  const [editRecurso, setEditRecurso] = useState<Recurso | null>(null)
+  const [editTitulo, setEditTitulo] = useState('')
+  const [editDescripcion, setEditDescripcion] = useState('')
+  const [editProductoId, setEditProductoId] = useState<string | null>(null)
+  const [editOrden, setEditOrden] = useState(0)
+  const [savingEdit, setSavingEdit] = useState(false)
+
+  function abrirEdicion(r: Recurso) {
+    setEditRecurso(r)
+    setEditTitulo(r.titulo)
+    setEditDescripcion(r.descripcion ?? '')
+    setEditProductoId(r.producto_id)
+    setEditOrden(r.orden)
+  }
+
+  async function guardarEdicion() {
+    if (!editRecurso || !editTitulo.trim()) return
+    setSavingEdit(true)
+    const res = await fetch('/api/admin/recursos', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: editRecurso.id,
+        titulo: editTitulo.trim(),
+        descripcion: editDescripcion.trim() || null,
+        producto_id: editProductoId,
+        orden: editOrden,
+      }),
+    })
+    if (res.ok) { await fetchAll(); setEditRecurso(null) }
+    setSavingEdit(false)
+  }
+
   useEffect(() => { fetchAll() }, [])
 
   async function fetchAll() {
@@ -175,6 +209,7 @@ export default function RecursosManager() {
   if (loading) return <p style={{ color: '#9ca3af', padding: 32 }}>Cargando recursos...</p>
 
   return (
+    <>
     <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 24, alignItems: 'start' }}>
 
       {/* ── Panel izquierdo: Categorías ── */}
@@ -428,20 +463,87 @@ export default function RecursosManager() {
                     <span style={{ color: '#d1d5db', fontSize: 12 }}>orden: {r.orden}</span>
                   </div>
                 </div>
-                {/* Eliminar */}
-                <button
-                  onClick={() => eliminarRecurso(r.id)}
-                  style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: 18, padding: 4, flexShrink: 0 }}
-                  title="Eliminar recurso"
-                >
-                  🗑
-                </button>
+                {/* Acciones */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flexShrink: 0 }}>
+                  <button
+                    onClick={() => abrirEdicion(r)}
+                    style={{ background: 'none', border: 'none', color: '#0d9488', cursor: 'pointer', fontSize: 16, padding: 4 }}
+                    title="Editar recurso"
+                  >✏️</button>
+                  <button
+                    onClick={() => eliminarRecurso(r.id)}
+                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: 16, padding: 4 }}
+                    title="Eliminar recurso"
+                  >🗑</button>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </div>
     </div>
+
+    {/* ── Modal edición ── */}
+    {editRecurso && (
+      <div
+        onClick={() => setEditRecurso(null)}
+        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.45)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+      >
+        <div
+          onClick={e => e.stopPropagation()}
+          style={{ background: 'white', borderRadius: 20, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,.2)', fontFamily: "'Outfit',sans-serif" }}
+        >
+          <div style={{ padding: '20px 24px', borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 18, fontWeight: 600, color: '#1f2937' }}>✏️ Editar recurso</span>
+            <button onClick={() => setEditRecurso(null)} style={{ background: '#f3f4f6', border: 'none', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', fontSize: 18, color: '#6b7280' }}>×</button>
+          </div>
+          <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div>
+              <label style={labelStyle}>Título *</label>
+              <input value={editTitulo} onChange={e => setEditTitulo(e.target.value)} style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>Descripción</label>
+              <textarea value={editDescripcion} onChange={e => setEditDescripcion(e.target.value)} rows={2} style={{ ...inputStyle, resize: 'vertical' }} />
+            </div>
+            <div>
+              <label style={labelStyle}>Orden</label>
+              <input type="number" value={editOrden} onChange={e => setEditOrden(Number(e.target.value))} style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>🔑 ¿Quién puede ver este recurso?</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {PRODUCTOS_OPCIONES.map(p => (
+                  <button
+                    key={String(p.id)}
+                    type="button"
+                    onClick={() => setEditProductoId(p.id)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 10,
+                      padding: '9px 14px', borderRadius: 10, textAlign: 'left',
+                      border: `2px solid ${editProductoId === p.id ? p.color : '#e5e7eb'}`,
+                      background: editProductoId === p.id ? p.bg : 'white',
+                      cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 600,
+                      color: editProductoId === p.id ? p.color : '#6b7280',
+                    }}
+                  >
+                    <span style={{ fontSize: 16 }}>{editProductoId === p.id ? '●' : '○'}</span>
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 8, paddingTop: 4 }}>
+              <button onClick={guardarEdicion} disabled={savingEdit || !editTitulo.trim()} style={btnPrimary}>
+                {savingEdit ? 'Guardando...' : 'Guardar cambios'}
+              </button>
+              <button onClick={() => setEditRecurso(null)} style={btnSecondary}>Cancelar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   )
 }
 

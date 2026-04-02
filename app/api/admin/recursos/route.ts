@@ -34,6 +34,20 @@ export async function POST(req: NextRequest) {
   return NextResponse.json(data)
 }
 
+export async function PATCH(req: NextRequest) {
+  if (!await checkAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const { id, titulo, descripcion, producto_id, orden } = await req.json()
+  if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
+  const admin = createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (admin as any).from('recursos')
+    .update({ titulo, descripcion, producto_id: producto_id ?? null, orden })
+    .eq('id', id)
+    .select().single()
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json(data)
+}
+
 export async function DELETE(req: NextRequest) {
   if (!await checkAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const id = new URL(req.url).searchParams.get('id')
