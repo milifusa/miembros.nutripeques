@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import AccionesUsuario from './AccionesUsuario'
+import GestorProductos from './GestorProductos'
 
 type Hijo = { id: string; nombre: string; fecha_nacimiento: string }
 type BusquedaItem = { consulta: string; created_at: string }
@@ -11,6 +12,13 @@ type CumpleanosItem = { mes: string; edad_meses: number; pais: string | null; cr
 type SustitutoItem = { ingrediente: string; edad_meses: number; created_at: string }
 type DescargaItem = { recurso_titulo: string; created_at: string }
 
+const PRODUCTO_LABELS: Record<string, { emoji: string; label: string; bg: string; color: string }> = {
+  metodo_nutripeques: { emoji: '🌟', label: 'Completo', bg: '#FFF7ED', color: '#E8821A' },
+  guia_ac:            { emoji: '🥣', label: 'Guía AC',  bg: '#F0FDFA', color: '#0d9488' },
+  menu_anemia:        { emoji: '🩸', label: 'Anemia',   bg: '#FFF1F2', color: '#e11d48' },
+  recetario_50:       { emoji: '🍳', label: 'Recetas',  bg: '#FEF3C7', color: '#D97706' },
+}
+
 type Miembro = {
   id: string
   email: string
@@ -18,6 +26,7 @@ type Miembro = {
   created_at: string
   monto_pago: number | null
   acceso_activo: boolean | null
+  productos_activos: string[]
 }
 
 export type MiembroExtra = {
@@ -146,7 +155,7 @@ function MiembroModal({ m, extra, onClose }: { m: Miembro; extra: MiembroExtra; 
           </div>
 
           {/* Pago */}
-          <div style={{ background: '#f8fafc', borderRadius: 12, padding: '12px 14px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ background: '#f8fafc', borderRadius: 12, padding: '12px 14px', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: 14, color: '#374151' }}>💳 Pago</span>
             {m.monto_pago != null ? (
               <Badge bg="#DCFCE7" color="#15803d">
@@ -155,6 +164,11 @@ function MiembroModal({ m, extra, onClose }: { m: Miembro; extra: MiembroExtra; 
             ) : (
               <Badge bg="#F3F4F6" color="#6b7280">Manual</Badge>
             )}
+          </div>
+
+          {/* Productos */}
+          <div style={{ marginBottom: 20 }}>
+            <GestorProductos usuarioId={m.id} productosActivos={m.productos_activos} />
           </div>
 
           {/* Hijos */}
@@ -345,6 +359,20 @@ export default function MiembrosTabla({
                         <Badge bg="#FEF3C7" color="#D97706">⏳ Sin acceder</Badge>
                       </div>
                     )}
+                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 6 }}>
+                      {m.productos_activos.length === 0 && (
+                        <span style={{ fontSize: 11, color: '#d1d5db' }}>Sin producto</span>
+                      )}
+                      {m.productos_activos.map(pid => {
+                        const p = PRODUCTO_LABELS[pid]
+                        if (!p) return null
+                        return (
+                          <span key={pid} style={{ background: p.bg, color: p.color, fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 8 }}>
+                            {p.emoji} {p.label}
+                          </span>
+                        )
+                      })}
+                    </div>
                   </td>
                   <td style={{ padding: '13px 16px' }}>
                     <span style={{ color: '#9ca3af', fontSize: 18 }}>›</span>

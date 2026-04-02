@@ -266,6 +266,7 @@ export default async function AdminPage() {
                 created_at: m.created_at,
                 monto_pago: m.monto_pago ?? null,
                 acceso_activo: null,
+                productos_activos: m.productos_activos ?? [],
               }))}
               extras={Object.fromEntries((miembros ?? []).map(m => [m.id, {
                 isBanned: banMap[m.id] ?? false,
