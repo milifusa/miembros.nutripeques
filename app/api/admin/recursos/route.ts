@@ -23,12 +23,12 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   if (!await checkAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const { categoria_id, titulo, descripcion, pdf_url, imagen_url, orden, producto_id } = await req.json()
+  const { categoria_id, titulo, descripcion, pdf_url, imagen_url, orden, producto_ids } = await req.json()
   if (!titulo || !pdf_url) return NextResponse.json({ error: 'titulo y pdf_url son requeridos' }, { status: 400 })
   const admin = createAdminClient()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (admin as any).from('recursos')
-    .insert({ categoria_id: categoria_id || null, titulo, descripcion, pdf_url, imagen_url: imagen_url || null, orden: orden ?? 0, producto_id: producto_id ?? null })
+    .insert({ categoria_id: categoria_id || null, titulo, descripcion, pdf_url, imagen_url: imagen_url || null, orden: orden ?? 0, producto_ids: producto_ids ?? [] })
     .select().single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data)
@@ -36,12 +36,12 @@ export async function POST(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   if (!await checkAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const { id, titulo, descripcion, producto_id, orden } = await req.json()
+  const { id, titulo, descripcion, producto_ids, orden } = await req.json()
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
   const admin = createAdminClient()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (admin as any).from('recursos')
-    .update({ titulo, descripcion, producto_id: producto_id ?? null, orden })
+    .update({ titulo, descripcion, producto_ids: producto_ids ?? [], orden })
     .eq('id', id)
     .select().single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

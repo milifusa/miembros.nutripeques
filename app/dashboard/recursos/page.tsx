@@ -8,7 +8,7 @@ import RecursoCard from './RecursoCard'
 import { tieneAccesoCompleto } from '@/lib/productos'
 
 type Categoria = { id: string; nombre: string; icono: string; orden: number }
-type Recurso = { id: string; categoria_id: string | null; titulo: string; descripcion: string | null; pdf_url: string; imagen_url: string | null; orden: number; producto_id?: string | null }
+type Recurso = { id: string; categoria_id: string | null; titulo: string; descripcion: string | null; pdf_url: string; imagen_url: string | null; orden: number; producto_ids?: string[] | null }
 
 export default async function RecursosPage() {
   const supabase = await createClient()
@@ -41,8 +41,9 @@ export default async function RecursosPage() {
   const recursos: Recurso[] = accesoCompleto
     ? todosRecursos
     : todosRecursos.filter(r => {
-        const pid = (r as { producto_id?: string | null }).producto_id
-        return pid != null && productosActivos.includes(pid)
+        const pids: string[] = (r as { producto_ids?: string[] | null }).producto_ids ?? []
+        // visible si al menos uno de sus productos coincide con lo que compró la usuaria
+        return pids.length > 0 && pids.some(p => productosActivos.includes(p))
       })
 
   return (

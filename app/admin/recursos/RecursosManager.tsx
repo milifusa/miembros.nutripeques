@@ -11,7 +11,7 @@ type Recurso = {
   pdf_url: string
   imagen_url: string | null
   orden: number
-  producto_id: string | null
+  producto_ids: string[] | null
 }
 
 const PRODUCTOS_OPCIONES = [
@@ -42,7 +42,7 @@ export default function RecursosManager() {
   const [rTitulo, setRTitulo] = useState('')
   const [rDescripcion, setRDescripcion] = useState('')
   const [rOrden, setROrden] = useState(0)
-  const [rProductoId, setRProductoId] = useState<string | null>(null)
+  const [rProductoIds, setRProductoIds] = useState<string[]>([])
   const [pdfFile, setPdfFile] = useState<File | null>(null)
   const [imagenFile, setImagenFile] = useState<File | null>(null)
   const [pdfPreview, setPdfPreview] = useState('')
@@ -57,15 +57,19 @@ export default function RecursosManager() {
   const [editRecurso, setEditRecurso] = useState<Recurso | null>(null)
   const [editTitulo, setEditTitulo] = useState('')
   const [editDescripcion, setEditDescripcion] = useState('')
-  const [editProductoId, setEditProductoId] = useState<string | null>(null)
+  const [editProductoIds, setEditProductoIds] = useState<string[]>([])
   const [editOrden, setEditOrden] = useState(0)
   const [savingEdit, setSavingEdit] = useState(false)
+
+  function toggleEditProducto(id: string) {
+    setEditProductoIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+  }
 
   function abrirEdicion(r: Recurso) {
     setEditRecurso(r)
     setEditTitulo(r.titulo)
     setEditDescripcion(r.descripcion ?? '')
-    setEditProductoId(r.producto_id)
+    setEditProductoIds(r.producto_ids ?? [])
     setEditOrden(r.orden)
   }
 
@@ -79,7 +83,7 @@ export default function RecursosManager() {
         id: editRecurso.id,
         titulo: editTitulo.trim(),
         descripcion: editDescripcion.trim() || null,
-        producto_id: editProductoId,
+        producto_ids: editProductoIds,
         orden: editOrden,
       }),
     })
@@ -174,7 +178,7 @@ export default function RecursosManager() {
           pdf_url,
           imagen_url,
           orden: rOrden,
-          producto_id: rProductoId,
+          producto_ids: rProductoIds,
         }),
       })
       if (res.ok) {
@@ -189,7 +193,7 @@ export default function RecursosManager() {
   }
 
   function resetRecursoForm() {
-    setRTitulo(''); setRDescripcion(''); setROrden(0); setRProductoId(null)
+    setRTitulo(''); setRDescripcion(''); setROrden(0); setRProductoIds([])
     setPdfFile(null); setImagenFile(null); setPdfPreview(''); setImagenPreview('')
     setShowRecursoForm(false)
     if (pdfInputRef.current) pdfInputRef.current.value = ''
@@ -356,27 +360,27 @@ export default function RecursosManager() {
               <div style={{ marginBottom: 14 }}>
                 <label style={labelStyle}>🔑 ¿Quién puede ver este recurso? *</label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {PRODUCTOS_OPCIONES.map(p => (
-                    <button
-                      key={String(p.id)}
-                      type="button"
-                      onClick={() => setRProductoId(p.id)}
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: 10,
-                        padding: '9px 14px', borderRadius: 10, textAlign: 'left',
-                        border: `2px solid ${rProductoId === p.id ? p.color : '#e5e7eb'}`,
-                        background: rProductoId === p.id ? p.bg : 'white',
-                        cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 600,
-                        color: rProductoId === p.id ? p.color : '#6b7280',
-                        transition: 'all .12s',
-                      }}
-                    >
-                      <span style={{ fontSize: 16, flexShrink: 0 }}>
-                        {rProductoId === p.id ? '●' : '○'}
-                      </span>
-                      {p.label}
-                    </button>
-                  ))}
+                  {PRODUCTOS_OPCIONES.filter(p => p.id !== null).map(p => {
+                    const checked = rProductoIds.includes(p.id!)
+                    return (
+                      <button
+                        key={String(p.id)}
+                        type="button"
+                        onClick={() => setRProductoIds(prev => checked ? prev.filter(x => x !== p.id) : [...prev, p.id!])}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 10,
+                          padding: '9px 14px', borderRadius: 10, textAlign: 'left',
+                          border: `2px solid ${checked ? p.color : '#e5e7eb'}`,
+                          background: checked ? p.bg : 'white',
+                          cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 600,
+                          color: checked ? p.color : '#6b7280', transition: 'all .12s',
+                        }}
+                      >
+                        <span style={{ fontSize: 16, flexShrink: 0 }}>{checked ? '☑' : '☐'}</span>
+                        {p.label}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
@@ -448,18 +452,17 @@ export default function RecursosManager() {
                     >
                       📥 Ver PDF
                     </a>
-                    {(() => {
-                      const p = PRODUCTOS_OPCIONES.find(o => o.id === r.producto_id)
-                      return p ? (
-                        <span style={{ background: p.bg, color: p.color, fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
-                          {p.label.split(' ').slice(0, 2).join(' ')}
-                        </span>
-                      ) : (
-                        <span style={{ background: '#f3f4f6', color: '#9ca3af', fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 8 }}>
-                          Sin producto
-                        </span>
-                      )
-                    })()}
+                    {(r.producto_ids ?? []).length === 0
+                      ? <span style={{ background: '#f3f4f6', color: '#9ca3af', fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 8 }}>Sin producto</span>
+                      : (r.producto_ids ?? []).map(pid => {
+                          const p = PRODUCTOS_OPCIONES.find(o => o.id === pid)
+                          return p ? (
+                            <span key={pid} style={{ background: p.bg, color: p.color, fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
+                              {p.label.split(' ').slice(0, 2).join(' ')}
+                            </span>
+                          ) : null
+                        })
+                    }
                     <span style={{ color: '#d1d5db', fontSize: 12 }}>orden: {r.orden}</span>
                   </div>
                 </div>
@@ -513,24 +516,27 @@ export default function RecursosManager() {
             <div>
               <label style={labelStyle}>🔑 ¿Quién puede ver este recurso?</label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {PRODUCTOS_OPCIONES.map(p => (
-                  <button
-                    key={String(p.id)}
-                    type="button"
-                    onClick={() => setEditProductoId(p.id)}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 10,
-                      padding: '9px 14px', borderRadius: 10, textAlign: 'left',
-                      border: `2px solid ${editProductoId === p.id ? p.color : '#e5e7eb'}`,
-                      background: editProductoId === p.id ? p.bg : 'white',
-                      cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 600,
-                      color: editProductoId === p.id ? p.color : '#6b7280',
-                    }}
-                  >
-                    <span style={{ fontSize: 16 }}>{editProductoId === p.id ? '●' : '○'}</span>
-                    {p.label}
-                  </button>
-                ))}
+                {PRODUCTOS_OPCIONES.filter(p => p.id !== null).map(p => {
+                  const checked = editProductoIds.includes(p.id!)
+                  return (
+                    <button
+                      key={String(p.id)}
+                      type="button"
+                      onClick={() => toggleEditProducto(p.id!)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 10,
+                        padding: '9px 14px', borderRadius: 10, textAlign: 'left',
+                        border: `2px solid ${checked ? p.color : '#e5e7eb'}`,
+                        background: checked ? p.bg : 'white',
+                        cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 600,
+                        color: checked ? p.color : '#6b7280',
+                      }}
+                    >
+                      <span style={{ fontSize: 16 }}>{checked ? '☑' : '☐'}</span>
+                      {p.label}
+                    </button>
+                  )
+                })}
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8, paddingTop: 4 }}>
