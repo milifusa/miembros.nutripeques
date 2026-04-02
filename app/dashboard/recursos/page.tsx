@@ -15,24 +15,19 @@ export default async function RecursosPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: usuarioRaw } = await supabase
-    .from('usuarios')
-    .select('nombre, productos_activos')
-    .eq('id', user.id)
-    .maybeSingle()
+  // Usar admin client para bypasear RLS en todas las queries
+  const admin = createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [{ data: catData }, { data: recData }, { data: usuarioRaw }] = await Promise.all([
+    (admin as any).from('categorias_recursos').select('*').order('orden'),
+    (admin as any).from('recursos').select('*').order('orden'),
+    (admin as any).from('usuarios').select('nombre, productos_activos').eq('id', user.id).maybeSingle(),
+  ])
 
   const usuarioData = usuarioRaw as { nombre: string | null; productos_activos: string[] } | null
   const nombre = usuarioData?.nombre?.split(' ')[0] ?? user.email?.split('@')[0] ?? 'mamá'
   const productosActivos: string[] = usuarioData?.productos_activos ?? []
   const accesoCompleto = tieneAccesoCompleto(productosActivos)
-
-  // Leer categorías y recursos con admin client (bypasa RLS)
-  const admin = createAdminClient()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [{ data: catData }, { data: recData }] = await Promise.all([
-    (admin as any).from('categorias_recursos').select('*').order('orden'),
-    (admin as any).from('recursos').select('*').order('orden'),
-  ])
 
   const categorias: Categoria[] = catData ?? []
   const todosRecursos: Recurso[] = recData ?? []

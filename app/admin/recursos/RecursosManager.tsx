@@ -77,18 +77,28 @@ export default function RecursosManager() {
   async function guardarEdicion() {
     if (!editRecurso || !editTitulo.trim()) return
     setSavingEdit(true)
-    const res = await fetch('/api/admin/recursos', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id: editRecurso.id,
-        titulo: editTitulo.trim(),
-        descripcion: editDescripcion.trim() || null,
-        producto_ids: editProductoIds,
-        orden: editOrden,
-      }),
-    })
-    if (res.ok) { await fetchAll(); setEditRecurso(null) }
+    try {
+      const res = await fetch('/api/admin/recursos', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: editRecurso.id,
+          titulo: editTitulo.trim(),
+          descripcion: editDescripcion.trim() || null,
+          producto_ids: editProductoIds,
+          orden: editOrden,
+        }),
+      })
+      const json = await res.json()
+      if (res.ok) {
+        await fetchAll()
+        setEditRecurso(null)
+      } else {
+        alert('Error al guardar: ' + (json.error ?? 'Error desconocido'))
+      }
+    } catch (e) {
+      alert('Error al guardar: ' + (e as Error).message)
+    }
     setSavingEdit(false)
   }
 
