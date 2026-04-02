@@ -1,5 +1,7 @@
 'use client'
 
+import { tieneAccesoCompleto } from '@/lib/productos'
+
 const SECCIONES = [
   {
     icon: '📅',
@@ -59,24 +61,52 @@ const SECCIONES = [
   },
 ]
 
-export default function SeccionCards() {
+export default function SeccionCards({ productosActivos }: { productosActivos: string[] }) {
+  const accesoCompleto = tieneAccesoCompleto(productosActivos)
+
   return (
     <div className="np-section-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 14, marginBottom: 28 }}>
-      {SECCIONES.map((s) => (
-        <a
-          key={s.href}
-          href={s.href}
-          style={{ background: s.bg, border: `2px solid ${s.border}`, borderRadius: 20, padding: '22px 20px', textDecoration: 'none', display: 'block', transition: 'transform .15s, box-shadow .15s' }}
-          onMouseOver={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-3px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 24px rgba(0,0,0,.1)' }}
-          onMouseOut={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}
-        >
-          <div style={{ width: 48, height: 48, background: s.iconBg, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, marginBottom: 14 }}>
-            {s.icon}
-          </div>
-          <p style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 17, fontWeight: 600, color: '#1f2937', margin: '0 0 4px' }}>{s.titulo}</p>
-          <p style={{ fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>{s.descripcion}</p>
-        </a>
-      ))}
+      {SECCIONES.map((s) => {
+        const esRecursos = s.href === '/dashboard/recursos'
+        const bloqueado = !accesoCompleto && !esRecursos
+
+        if (bloqueado) {
+          return (
+            <a
+              key={s.href}
+              href={s.href}
+              style={{ background: s.bg, border: `2px solid ${s.border}`, borderRadius: 20, padding: '22px 20px', textDecoration: 'none', display: 'block', opacity: 0.6, position: 'relative', cursor: 'pointer' }}
+              onClick={e => {
+                e.preventDefault()
+                alert('Para acceder a esta sección necesitas el Método NutriPeques completo por $299 MXN. Visita la página principal para actualizar tu plan. 🌟')
+              }}
+            >
+              <div style={{ position: 'absolute', top: 10, right: 12, fontSize: 16 }}>🔒</div>
+              <div style={{ width: 48, height: 48, background: s.iconBg, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, marginBottom: 14 }}>
+                {s.icon}
+              </div>
+              <p style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 17, fontWeight: 600, color: '#1f2937', margin: '0 0 4px' }}>{s.titulo}</p>
+              <p style={{ fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>{s.descripcion}</p>
+            </a>
+          )
+        }
+
+        return (
+          <a
+            key={s.href}
+            href={s.href}
+            style={{ background: s.bg, border: `2px solid ${s.border}`, borderRadius: 20, padding: '22px 20px', textDecoration: 'none', display: 'block', transition: 'transform .15s, box-shadow .15s' }}
+            onMouseOver={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-3px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 24px rgba(0,0,0,.1)' }}
+            onMouseOut={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}
+          >
+            <div style={{ width: 48, height: 48, background: s.iconBg, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, marginBottom: 14 }}>
+              {s.icon}
+            </div>
+            <p style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 17, fontWeight: 600, color: '#1f2937', margin: '0 0 4px' }}>{s.titulo}</p>
+            <p style={{ fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.5 }}>{s.descripcion}</p>
+          </a>
+        )
+      })}
     </div>
   )
 }

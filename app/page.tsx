@@ -304,6 +304,80 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* ─── Elige tu plan ─── */}
+      <section id="planes" style={{ background: '#f8fafc', padding: '80px 0', fontFamily: "'Outfit',sans-serif" }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 20px' }}>
+          <div style={{ textAlign: 'center', marginBottom: 16 }}>
+            <span style={{ display: 'inline-block', background: '#FFF7ED', color: '#E8821A', borderRadius: 50, padding: '6px 20px', fontSize: 13, fontWeight: 700 }}>🥄 EMPIEZA HOY</span>
+          </div>
+          <h2 style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 'clamp(26px,4vw,44px)', textAlign: 'center', marginBottom: 10, color: '#1f2937' }}>
+            ¿Por dónde quieres empezar?
+          </h2>
+          <p style={{ textAlign: 'center', fontSize: 16, color: '#6b7280', maxWidth: 580, margin: '0 auto 52px', lineHeight: 1.7 }}>
+            Elige lo que necesitas ahora — o accede a todo con el plan completo
+          </p>
+
+          {/* Guías individuales — 3 columnas */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 20, marginBottom: 24 }}>
+            {([
+              { id: 'guia_ac',      emoji: '🥣', nombre: 'Guía inicio AC — 4 semanas',  descripcion: 'El paso a paso completo para iniciar la alimentación complementaria con seguridad. 4 semanas de plan estructurado.', para: 'Para mamás que acaban de iniciar la AC o están a punto de hacerlo' },
+              { id: 'menu_anemia',  emoji: '🩸', nombre: 'Menú anti anemia completo',    descripcion: 'Plan de menús rico en hierro para prevenir la anemia en bebés. Recetas fáciles, ingredientes accesibles.', para: 'Para bebés con anemia o riesgo de deficiencia de hierro' },
+              { id: 'recetario_50', emoji: '🍳', nombre: 'Recetario 50 recetas',          descripcion: '50 recetas nutritivas y deliciosas para bebés de 6 a 18 meses. Desde purés hasta finger foods.', para: 'Para mamás que quieren variedad y nuevas ideas cada semana' },
+            ] as const).map(g => (
+              <div key={g.id} style={{ background: 'white', borderRadius: 24, border: '1.5px solid #e5e7eb', padding: '28px 24px', display: 'flex', flexDirection: 'column', boxShadow: '0 2px 12px rgba(0,0,0,.05)' }}>
+                <div style={{ width: 56, height: 56, background: '#FFF7ED', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, marginBottom: 18, border: '1.5px solid #FED7AA' }}>
+                  {g.emoji}
+                </div>
+                <h3 style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 20, fontWeight: 600, color: '#1f2937', margin: '0 0 10px' }}>{g.nombre}</h3>
+                <p style={{ fontSize: 14, color: '#6b7280', lineHeight: 1.7, margin: '0 0 14px', flex: 1 }}>{g.descripcion}</p>
+                <p style={{ fontSize: 12, color: '#0d9488', fontWeight: 600, background: '#F0FDFA', borderRadius: 20, padding: '5px 12px', display: 'inline-block', margin: '0 0 20px', alignSelf: 'flex-start' }}>
+                  👉 {g.para}
+                </p>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginTop: 'auto' }}>
+                  <div>
+                    <span style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 32, fontWeight: 700, color: '#1f2937' }}>$99</span>
+                    <span style={{ fontSize: 13, color: '#9ca3af', marginLeft: 4 }}>MXN · pago único</span>
+                  </div>
+                  <a href={`/api/checkout?producto=${g.id}`} style={{ background: '#1f2937', color: 'white', padding: '12px 22px', borderRadius: 50, textDecoration: 'none', fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap' }}>
+                    Comprar →
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Plan completo — destacado */}
+          <div style={{ background: 'linear-gradient(135deg,#1f2937,#0f766e)', borderRadius: 28, padding: '44px 44px', color: 'white', display: 'grid', gridTemplateColumns: '1fr auto', gap: 32, alignItems: 'center', boxShadow: '0 12px 48px rgba(13,148,136,.25)', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', right: -30, top: -30, fontSize: 160, opacity: .06, lineHeight: 1 }}>🌟</div>
+            <div style={{ position: 'relative' }}>
+              <div style={{ display: 'inline-block', background: 'linear-gradient(135deg,#F4A340,#E8821A)', borderRadius: 50, padding: '5px 18px', fontSize: 12, fontWeight: 700, letterSpacing: 0.5, marginBottom: 16 }}>
+                🌟 MÁS POPULAR — PLAN COMPLETO
+              </div>
+              <h3 style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 'clamp(22px,3vw,32px)', fontWeight: 600, margin: '0 0 12px', lineHeight: 1.2 }}>
+                Método NutriPeques Completo
+              </h3>
+              <p style={{ fontSize: 15, opacity: .85, lineHeight: 1.7, margin: '0 0 22px', maxWidth: 560 }}>
+                Acceso completo a toda la plataforma: buscador IA, menú semanal, bitácora, texturas, alérgenos, cumpleaños, sustitutos + 10 guías PDF. Todo incluido, acceso de por vida.
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {['🤖 Buscador IA', '📅 Menú semanal', '📓 Bitácora', '📊 Texturas', '⚠️ Alérgenos', '🎂 Cumpleaños', '🔄 Sustitutos', '📚 10 guías PDF', '♾️ Acceso de por vida'].map(f => (
+                  <span key={f} style={{ background: 'rgba(255,255,255,.1)', border: '1px solid rgba(255,255,255,.2)', padding: '5px 14px', borderRadius: 20, fontSize: 13, fontWeight: 500 }}>{f}</span>
+                ))}
+              </div>
+            </div>
+            <div style={{ textAlign: 'center', flexShrink: 0, position: 'relative' }}>
+              <div style={{ fontSize: 14, opacity: .5, textDecoration: 'line-through', marginBottom: 2 }}>$599 MXN</div>
+              <div style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 'clamp(44px,6vw,64px)', fontWeight: 700, color: '#F4A340', lineHeight: 1 }}>$299</div>
+              <div style={{ fontSize: 13, opacity: .6, marginBottom: 20 }}>MXN · pago único</div>
+              <a href="/api/checkout?producto=metodo_nutripeques" style={{ display: 'block', background: 'linear-gradient(135deg,#F4A340,#E8821A)', color: 'white', padding: '16px 28px', borderRadius: 50, fontFamily: "'Fredoka',sans-serif", fontSize: 18, fontWeight: 700, textDecoration: 'none', boxShadow: '0 6px 24px rgba(244,163,64,.4)', whiteSpace: 'nowrap' }}>
+                🛒 Quiero todo →
+              </a>
+              <p style={{ fontSize: 11, opacity: .5, marginTop: 10 }}>Garantía 7 días</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ─── CTA Principal con countdown ─── */}
       <section id="metodo" style={{ background: 'linear-gradient(135deg,#1f2937,#374151)', padding: '70px 0', color: 'white', fontFamily: "'Outfit',sans-serif" }}>
         <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 20px', textAlign: 'center' }}>

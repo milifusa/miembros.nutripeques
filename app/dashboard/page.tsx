@@ -13,7 +13,7 @@ export default async function DashboardPage() {
   const [{ data: usuarioRaw }, { data: hijosRaw }] = await Promise.all([
     supabase
       .from('usuarios')
-      .select('nombre')
+      .select('nombre, productos_activos')
       .eq('id', user.id)
       .maybeSingle(),
     supabase
@@ -23,7 +23,8 @@ export default async function DashboardPage() {
       .order('created_at', { ascending: true }),
   ])
 
-  const usuario = usuarioRaw as { nombre: string | null } | null
+  const usuario = usuarioRaw as { nombre: string | null; productos_activos: string[] } | null
+  const productosActivos: string[] = usuario?.productos_activos ?? []
   const hijos = (hijosRaw ?? []) as { id: string; nombre: string; fecha_nacimiento: string }[]
 
   const nombre = usuario?.nombre?.split(' ')[0] ?? user.email?.split('@')[0] ?? 'mamá'
@@ -93,7 +94,7 @@ export default async function DashboardPage() {
 
           {/* Secciones */}
           <p style={{ fontSize: 12, fontWeight: 700, color: '#9ca3af', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 14 }}>Tu contenido</p>
-          <SeccionCards />
+          <SeccionCards productosActivos={productosActivos} />
 
           {/* Banner */}
           <div className="np-dash-banner" style={{ background: 'linear-gradient(135deg,#0D9488,#0F766E)', borderRadius: 20, padding: '22px 26px', color: 'white', display: 'flex', alignItems: 'center', gap: 20 }}>

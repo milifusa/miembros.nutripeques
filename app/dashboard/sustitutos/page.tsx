@@ -4,11 +4,18 @@ import { cookies } from 'next/headers'
 import Link from 'next/link'
 import LogoutButton from '@/components/ui/LogoutButton'
 import BuscadorSustitutos from './BuscadorSustitutos'
+import AccesoBloqueado from '@/components/ui/AccesoBloqueado'
 
 export default async function SustitutosPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  const { data: usuarioData } = await supabase.from('usuarios').select('productos_activos').eq('id', user.id).maybeSingle()
+  const productosActivos: string[] = (usuarioData as { productos_activos: string[] } | null)?.productos_activos ?? []
+  if (!productosActivos.includes('metodo_nutripeques')) {
+    return <AccesoBloqueado />
+  }
 
   const cookieStore = await cookies()
   const hijoActivoId = cookieStore.get('hijo_activo_id')?.value ?? null

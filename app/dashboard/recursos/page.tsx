@@ -5,8 +5,10 @@ import Link from 'next/link'
 import LogoutButton from '@/components/ui/LogoutButton'
 import RecursoCard from './RecursoCard'
 
+import { tieneAccesoCompleto } from '@/lib/productos'
+
 type Categoria = { id: string; nombre: string; icono: string; orden: number }
-type Recurso = { id: string; categoria_id: string | null; titulo: string; descripcion: string | null; pdf_url: string; imagen_url: string | null; orden: number }
+type Recurso = { id: string; categoria_id: string | null; titulo: string; descripcion: string | null; pdf_url: string; imagen_url: string | null; orden: number; producto_id?: string | null }
 
 export default async function RecursosPage() {
   const supabase = await createClient()
@@ -15,12 +17,14 @@ export default async function RecursosPage() {
 
   const { data: usuarioRaw } = await supabase
     .from('usuarios')
-    .select('nombre')
+    .select('nombre, productos_activos')
     .eq('id', user.id)
     .maybeSingle()
 
-  const nombre = (usuarioRaw as { nombre: string | null } | null)?.nombre?.split(' ')[0]
-    ?? user.email?.split('@')[0] ?? 'mamá'
+  const usuarioData = usuarioRaw as { nombre: string | null; productos_activos: string[] } | null
+  const nombre = usuarioData?.nombre?.split(' ')[0] ?? user.email?.split('@')[0] ?? 'mamá'
+  const productosActivos: string[] = usuarioData?.productos_activos ?? []
+  const accesoCompleto = tieneAccesoCompleto(productosActivos)
 
   // Leer categorías y recursos con admin client (bypasa RLS)
   const admin = createAdminClient()
@@ -31,7 +35,15 @@ export default async function RecursosPage() {
   ])
 
   const categorias: Categoria[] = catData ?? []
-  const recursos: Recurso[] = recData ?? []
+  const todosRecursos: Recurso[] = recData ?? []
+
+  // Filter resources based on access level
+  const recursos: Recurso[] = accesoCompleto
+    ? todosRecursos
+    : todosRecursos.filter(r => {
+        const pid = (r as { producto_id?: string | null }).producto_id
+        return pid != null && productosActivos.includes(pid)
+      })
 
   return (
     <>
@@ -63,6 +75,18 @@ export default async function RecursosPage() {
               Hola, {nombre} — aquí tienes todas tus guías y materiales exclusivos
             </p>
           </div>
+
+          {!accesoCompleto && (
+            <div style={{ background: '#FFF7ED', border: '1.5px solid #FED7AA', borderRadius: 16, padding: '16px 20px', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 22, flexShrink: 0 }}>🔓</span>
+              <p style={{ margin: 0, fontSize: 14, color: '#92400E', flex: 1 }}>
+                Tienes acceso a los recursos de tu guía. Para ver todos los materiales,{' '}
+                <a href="/api/checkout?producto=metodo_nutripeques" style={{ color: '#E8821A', fontWeight: 700, textDecoration: 'none' }}>
+                  actualiza al plan completo →
+                </a>
+              </p>
+            </div>
+          )}
 
           <div style={{ background: 'linear-gradient(135deg,#0D9488,#0F766E)', borderRadius: 20, padding: '20px 24px', color: 'white', display: 'flex', alignItems: 'center', gap: 16, marginBottom: 32 }}>
             <span style={{ fontSize: 36, flexShrink: 0 }}>🔐</span>
