@@ -53,6 +53,13 @@ function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
+function fmtDateTime(iso: string) {
+  const d = new Date(iso)
+  const date = d.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })
+  const time = d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true })
+  return `${date} · ${time}`
+}
+
 function Badge({ bg, color, children }: { bg: string; color: string; children: React.ReactNode }) {
   return (
     <span style={{ background: bg, color, fontWeight: 700, fontSize: 12, padding: '3px 10px', borderRadius: 10 }}>
@@ -144,12 +151,12 @@ function MiembroModal({ m, extra, onClose }: { m: Miembro; extra: MiembroExtra; 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
             <div style={{ background: '#f8fafc', borderRadius: 12, padding: '12px 14px' }}>
               <p style={{ margin: '0 0 2px', fontSize: 11, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase' }}>Registro</p>
-              <p style={{ margin: 0, fontSize: 14, color: '#1f2937', fontWeight: 600 }}>{fmtDate(m.created_at)}</p>
+              <p style={{ margin: 0, fontSize: 13, color: '#1f2937', fontWeight: 600 }}>{fmtDateTime(m.created_at)}</p>
             </div>
             <div style={{ background: '#f8fafc', borderRadius: 12, padding: '12px 14px' }}>
               <p style={{ margin: '0 0 2px', fontSize: 11, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase' }}>Último acceso</p>
-              <p style={{ margin: 0, fontSize: 14, color: extra.lastLogin ? '#1f2937' : '#d1d5db', fontWeight: 600 }}>
-                {extra.lastLogin ? fmtDate(extra.lastLogin) : 'Nunca'}
+              <p style={{ margin: 0, fontSize: 13, color: extra.lastLogin ? '#1f2937' : '#d1d5db', fontWeight: 600 }}>
+                {extra.lastLogin ? fmtDateTime(extra.lastLogin) : 'Nunca'}
               </p>
             </div>
           </div>
@@ -197,7 +204,7 @@ function MiembroModal({ m, extra, onClose }: { m: Miembro; extra: MiembroExtra; 
               {extra.busquedas.map((b, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '6px 10px', background: i % 2 === 0 ? '#fffbeb' : 'white', borderRadius: 8, marginBottom: 2, gap: 8 }}>
                   <span style={{ fontSize: 13, color: '#374151', flex: 1 }}>{b.consulta}</span>
-                  <span style={{ fontSize: 11, color: '#9ca3af', whiteSpace: 'nowrap' }}>{fmtDate(b.created_at)}</span>
+                  <span style={{ fontSize: 11, color: '#9ca3af', whiteSpace: 'nowrap' }}>{fmtDateTime(b.created_at)}</span>
                 </div>
               ))}
             </ActivitySection>
@@ -224,7 +231,7 @@ function MiembroModal({ m, extra, onClose }: { m: Miembro; extra: MiembroExtra; 
               {extra.menus.map((mn, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: i % 2 === 0 ? '#eff6ff' : 'white', borderRadius: 8, marginBottom: 2 }}>
                   <span style={{ fontSize: 13, color: '#374151' }}>Semana del {fmtDate(mn.semana)}</span>
-                  <span style={{ fontSize: 11, color: '#9ca3af' }}>{fmtDate(mn.created_at)}</span>
+                  <span style={{ fontSize: 11, color: '#9ca3af' }}>{fmtDateTime(mn.created_at)}</span>
                 </div>
               ))}
             </ActivitySection>
@@ -236,7 +243,7 @@ function MiembroModal({ m, extra, onClose }: { m: Miembro; extra: MiembroExtra; 
                     <span style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>{c.edad_meses} meses</span>
                     {c.pais && <span style={{ marginLeft: 8, fontSize: 12, color: '#6b7280' }}>📍{c.pais}</span>}
                   </div>
-                  <span style={{ fontSize: 11, color: '#9ca3af', whiteSpace: 'nowrap' }}>{c.mes}</span>
+                  <span style={{ fontSize: 11, color: '#9ca3af', whiteSpace: 'nowrap' }}>{fmtDateTime(c.created_at)}</span>
                 </div>
               ))}
             </ActivitySection>
@@ -247,7 +254,7 @@ function MiembroModal({ m, extra, onClose }: { m: Miembro; extra: MiembroExtra; 
                   <span style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>{s.ingrediente}</span>
                   <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                     <span style={{ fontSize: 11, background: '#F3E8FF', color: '#7C3AED', padding: '1px 6px', borderRadius: 6, fontWeight: 600 }}>{s.edad_meses}m</span>
-                    <span style={{ fontSize: 11, color: '#9ca3af', whiteSpace: 'nowrap' }}>{fmtDate(s.created_at)}</span>
+                    <span style={{ fontSize: 11, color: '#9ca3af', whiteSpace: 'nowrap' }}>{fmtDateTime(s.created_at)}</span>
                   </div>
                 </div>
               ))}
@@ -257,7 +264,7 @@ function MiembroModal({ m, extra, onClose }: { m: Miembro; extra: MiembroExtra; 
               {extra.descargas.map((d, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: i % 2 === 0 ? '#eff6ff' : 'white', borderRadius: 8, marginBottom: 2, gap: 8 }}>
                   <span style={{ fontSize: 13, color: '#374151', flex: 1 }}>{d.recurso_titulo}</span>
-                  <span style={{ fontSize: 11, color: '#9ca3af', whiteSpace: 'nowrap' }}>{fmtDate(d.created_at)}</span>
+                  <span style={{ fontSize: 11, color: '#9ca3af', whiteSpace: 'nowrap' }}>{fmtDateTime(d.created_at)}</span>
                 </div>
               ))}
             </ActivitySection>
@@ -332,7 +339,7 @@ export default function MiembrosTabla({
                     </div>
                   </td>
                   <td style={{ padding: '13px 16px', color: '#6b7280', fontSize: 13, whiteSpace: 'nowrap' }}>
-                    {new Date(m.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    {fmtDateTime(m.created_at)}
                     {ex.hijos.length > 0 && (
                       <div style={{ marginTop: 2, fontSize: 11, color: '#9ca3af' }}>
                         {ex.hijos.map(h => h.nombre).join(', ')}
