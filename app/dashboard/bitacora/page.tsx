@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import Link from 'next/link'
@@ -11,7 +12,9 @@ export default async function BitacoraPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: usuarioData } = await supabase.from('usuarios').select('productos_activos').eq('id', user.id).maybeSingle()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const adminDb = createAdminClient()
+  const { data: usuarioData } = await (adminDb as any).from('usuarios').select('productos_activos').eq('id', user.id).maybeSingle()
   const productosActivos: string[] = (usuarioData as { productos_activos: string[] } | null)?.productos_activos ?? []
   if (!productosActivos.includes('metodo_nutripeques')) {
     return <AccesoBloqueado />
