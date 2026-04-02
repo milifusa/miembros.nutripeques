@@ -8,27 +8,69 @@ import HeroImage from '@/components/landing/HeroImage'
 const CHECKOUT_URL = '/api/checkout'
 
 type MonedaInfo = {
-  precio: string        // Plan completo
-  precioTachado: string // Tachado
-  precioGuia: string    // Guías $99
-  codigo: string        // "MXN", "USD", etc.
-  nota: string          // "pago único" note
+  precio: string
+  precioTachado: string
+  precioGuia: string
+  codigo: string
+  nota: string
 }
 
-function detectarMoneda(pais: string): MonedaInfo {
-  switch (pais) {
-    case 'CO': return { precio: '$140.000 COP', precioTachado: '$375.000 COP', precioGuia: '$46.000', codigo: 'COP', nota: 'COP · pago único' }
-    case 'CL': return { precio: '$16.000 CLP',  precioTachado: '$42.000 CLP',  precioGuia: '$5.200',  codigo: 'CLP', nota: 'CLP · pago único' }
-    case 'AR': return { precio: '$270.000 ARS', precioTachado: '$720.000 ARS', precioGuia: '$90.000', codigo: 'ARS', nota: 'ARS · pago único' }
-    case 'PE': return { precio: 'S/.65 PEN',    precioTachado: 'S/.175 PEN',   precioGuia: 'S/.22',   codigo: 'PEN', nota: 'PEN · pago único' }
-    case 'ES':
-    case 'DE':
-    case 'FR':
-    case 'IT':
-    case 'NL': return { precio: '€15 EUR',      precioTachado: '€41 EUR',      precioGuia: '€5',      codigo: 'EUR', nota: 'EUR · pago único' }
-    case 'US':
-    case 'CA': return { precio: '$17 USD',       precioTachado: '$46 USD',      precioGuia: '$6',       codigo: 'USD', nota: 'USD · pago único' }
-    default:   return { precio: '$299 MXN',      precioTachado: '$800 MXN',     precioGuia: '$99',      codigo: 'MXN', nota: 'MXN · pago único' }
+// Países hispanohablantes → moneda ISO
+const PAIS_MONEDA: Record<string, string> = {
+  MX: 'MXN', CO: 'COP', AR: 'ARS', CL: 'CLP', PE: 'PEN',
+  BO: 'BOB', PY: 'PYG', UY: 'UYU', CR: 'CRC', GT: 'GTQ',
+  HN: 'HNL', NI: 'NIO', DO: 'DOP', CU: 'CUP', PA: 'USD',
+  SV: 'USD', EC: 'USD', VE: 'USD', PR: 'USD',
+  ES: 'EUR', GQ: 'XAF',
+  // resto del mundo
+  US: 'USD', CA: 'USD',
+  DE: 'EUR', FR: 'EUR', IT: 'EUR', NL: 'EUR', PT: 'EUR',
+}
+
+function fmtPrecio(mxnAmount: number, rate: number, currency: string): string {
+  const amount = Math.round(mxnAmount * rate)
+  const symbols: Record<string, string> = {
+    MXN: '$', USD: '$', EUR: '€', COP: '$', ARS: '$', CLP: '$',
+    PEN: 'S/.', BOB: 'Bs.', PYG: '₲', UYU: '$U', CRC: '₡',
+    GTQ: 'Q', HNL: 'L', NIO: 'C$', DOP: 'RD$', CUP: '$',
+    XAF: 'FCFA',
+  }
+  const sym = symbols[currency] ?? ''
+  // Separador de miles con punto (estilo latinoamericano)
+  const formatted = amount.toLocaleString('es-MX')
+  return `${sym}${formatted}`
+}
+
+async function obtenerPrecios(pais: string): Promise<MonedaInfo> {
+  const currency = PAIS_MONEDA[pais] ?? 'MXN'
+
+  if (currency === 'MXN') {
+    return { precio: '$299 MXN', precioTachado: '$800 MXN', precioGuia: '$99', codigo: 'MXN', nota: 'MXN · pago único' }
+  }
+
+  try {
+    const res = await fetch('https://open.er-api.com/v6/latest/MXN', {
+      next: { revalidate: 3600 }, // cache 1 hora
+    })
+    const data = await res.json()
+    if (data.result !== 'success') throw new Error('API error')
+    const rate: number = data.rates[currency]
+    if (!rate) throw new Error(`Sin tasa para ${currency}`)
+
+    const precio    = fmtPrecio(299, rate, currency)
+    const tachado   = fmtPrecio(800, rate, currency)
+    const guia      = fmtPrecio(99, rate, currency)
+
+    return {
+      precio:        `${precio} ${currency}`,
+      precioTachado: `${tachado} ${currency}`,
+      precioGuia:    guia,
+      codigo:        currency,
+      nota:          `${currency} · aprox. · pago único`,
+    }
+  } catch {
+    // fallback a MXN si la API falla
+    return { precio: '$299 MXN', precioTachado: '$800 MXN', precioGuia: '$99', codigo: 'MXN', nota: 'MXN · pago único' }
   }
 }
 
@@ -93,7 +135,7 @@ export default async function Home() {
 
   const hdrs = await headers()
   const pais = hdrs.get('x-vercel-ip-country') ?? 'MX'
-  const { precio: PRECIO, precioTachado: PRECIO_TACHADO, precioGuia: PRECIO_GUIA, nota: NOTA_MONEDA } = detectarMoneda(pais)
+  const { precio: PRECIO, precioTachado: PRECIO_TACHADO, precioGuia: PRECIO_GUIA, nota: NOTA_MONEDA } = await obtenerPrecios(pais)
 
   return (
     <>
