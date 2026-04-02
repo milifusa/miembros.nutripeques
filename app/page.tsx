@@ -656,7 +656,7 @@ export default async function Home() {
                 Soy nutrióloga especialista en alimentación infantil y mamá de Max. Creé el Método NutriPeques porque viví en carne propia la confusión de los primeros alimentos — y quiero que tú no pases por lo mismo.
               </p>
               <p style={{ fontSize: 15, color: '#6b7280', lineHeight: 1.9 }}>
-                Con más de 5 años de experiencia clínica y una comunidad de <strong style={{ color: '#0d9488' }}>+100k mamás</strong> en redes, construí esta plataforma para que tengas a una nutrióloga en el bolsillo, disponible siempre.
+                Con más de 5 años de experiencia clínica, construí esta plataforma para que tengas a una nutrióloga en el bolsillo, disponible siempre.
               </p>
             </div>
           </div>

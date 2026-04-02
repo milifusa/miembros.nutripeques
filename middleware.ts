@@ -42,6 +42,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  // Rutas /admin — solo el email de Liliana
+  if (pathname.startsWith('/admin') && user?.email !== 'nutripequespro@gmail.com') {
+    const url = request.nextUrl.clone()
+    url.pathname = user ? '/dashboard' : '/login'
+    return NextResponse.redirect(url)
+  }
+
   // Con sesión activa e intentando ir al login → redirigir al dashboard
   if (user && pathname === '/login') {
     const url = request.nextUrl.clone()
