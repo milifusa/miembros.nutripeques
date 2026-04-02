@@ -30,5 +30,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ signedUrl: data.signedUrl, path: data.path })
+  const { data: { publicUrl } } = admin.storage.from('recursos').getPublicUrl(data.path)
+  return NextResponse.json({ token: data.token, path: data.path, publicUrl })
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { createClient } from '@/lib/supabase/client'
 
 type Categoria = { id: string; nombre: string; icono: string; orden: number }
 type Recurso = {
@@ -105,13 +106,23 @@ export default function RecursosManager() {
   }
 
   async function uploadFile(file: File, tipo: string): Promise<string> {
-    const fd = new FormData()
-    fd.append('file', file)
-    fd.append('tipo', tipo)
-    const res = await fetch('/api/admin/upload', { method: 'POST', body: fd })
+    // 1. Pedir token firmado al servidor (solo metadatos, sin el archivo)
+    const res = await fetch('/api/admin/upload-url', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tipo, ext: file.name.split('.').pop() }),
+    })
     const json = await res.json()
-    if (!res.ok) throw new Error(json.error ?? 'Error al subir archivo')
-    return json.url as string
+    if (!res.ok) throw new Error(json.error ?? 'Error obteniendo URL de subida')
+
+    // 2. Subir directamente a Supabase desde el browser (sin pasar por Vercel)
+    const supabase = createClient()
+    const { error } = await supabase.storage
+      .from('recursos')
+      .uploadToSignedUrl(json.path, json.token, file, { contentType: file.type })
+    if (error) throw new Error(error.message)
+
+    return json.publicUrl as string
   }
 
   async function guardarCategoria() {
