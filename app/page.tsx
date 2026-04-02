@@ -144,31 +144,65 @@ export default async function Home() {
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fredoka:wght@400;500;600&display=swap" rel="stylesheet" />
       <style>{`
         @media (max-width: 768px) {
+          /* Nav / Header */
           .np-nav { display: none !important; }
           .np-urgency-extra { display: none !important; }
           .np-header-title { display: none !important; }
-          .np-header { height: 60px !important; top: 36px !important; }
-          .np-header img { height: 46px !important; }
-          .np-hero-emotional { grid-template-columns: 1fr !important; }
-          .np-hero-emotional-photo { max-width: 280px !important; margin: 0 auto; }
+          .np-ya-soy { display: none !important; }
+          .np-header { height: 56px !important; top: 34px !important; }
+          .np-header img { height: 42px !important; }
+          .np-header-cta { font-size: 13px !important; padding: 8px 16px !important; }
+
+          /* Urgency bar */
+          .np-urgency-bar { flex-wrap: wrap !important; gap: 6px !important; padding: 7px 12px !important; justify-content: center !important; }
+
+          /* Hero */
+          .np-hero-section { padding: 32px 0 24px !important; }
+          .np-hero-emotional { grid-template-columns: 1fr !important; gap: 24px !important; }
+          .np-hero-emotional-photo { order: 2 !important; max-width: 200px !important; margin: 0 auto; }
+          .np-hero-text { order: 1 !important; }
+          .np-hero-cta { font-size: 16px !important; padding: 14px 20px !important; display: block !important; text-align: center !important; width: 100%; box-sizing: border-box !important; }
+          .np-hero-cta-note { text-align: center !important; }
+
+          /* Plan completo card */
+          .np-plan-card { grid-template-columns: 1fr !important; padding: 28px 22px !important; gap: 24px !important; }
+          .np-plan-precio { text-align: center !important; }
+          .np-plan-precio a { width: 100%; box-sizing: border-box !important; }
+
+          /* Guías */
           .np-guia-grid { grid-template-columns: 1fr !important; }
           .np-guia-grid > div:first-child { max-width: 160px; margin: 0 auto; }
+
+          /* Otras secciones */
+          .np-big-section { padding: 48px 0 !important; }
+          .np-cta-section { padding: 48px 0 !important; }
+          .np-cta-inner { padding: 32px 22px !important; }
           .np-liliana-grid { grid-template-columns: 1fr !important; }
-          .np-liliana-inner { padding: 32px 24px !important; }
+          .np-liliana-inner { padding: 28px 20px !important; }
           .np-valor-items { grid-template-columns: 1fr !important; }
           .np-bono-item { flex-direction: column !important; align-items: center !important; text-align: center; }
-          .np-bono-item > div:first-child { width: 120px !important; margin: 0 auto 4px; }
+          .np-bono-item > div:first-child { width: 120px !important; margin: 0 auto 8px; }
+
+          /* FAQ / countdown CTA */
+          .np-countdown-grid { grid-template-columns: 1fr !important; text-align: center !important; gap: 20px !important; }
+          .np-beneficios-grid { grid-template-columns: 1fr 1fr !important; }
+
+          /* Testimonios */
+          .np-testimonios-grid { grid-template-columns: 1fr !important; }
+
+          /* Pantallas plataforma */
+          .np-screens-grid { grid-template-columns: 1fr 1fr !important; }
         }
         @media (max-width: 480px) {
-          .np-hero-section { padding: 36px 0 28px !important; }
-          .np-big-section { padding: 52px 0 !important; }
-          .np-cta-section { padding: 52px 0 !important; }
+          .np-beneficios-grid { grid-template-columns: 1fr !important; }
+          .np-screens-grid { grid-template-columns: 1fr !important; }
+          .np-plan-card { padding: 22px 18px !important; }
         }
       `}</style>
 
       {/* ─── URGENCY BAR ─── */}
       <div style={{ background: 'linear-gradient(90deg,#0d9488,#0f766e,#0d9488)', color: 'white', textAlign: 'center', padding: '9px 16px', fontSize: 14, fontWeight: 600, position: 'sticky', top: 0, zIndex: 1000, fontFamily: "'Outfit',sans-serif" }}>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 16, flexWrap: 'nowrap' }}>
+        <div className="np-urgency-bar" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 16, flexWrap: 'nowrap' }}>
           <UrgencyCountdown />
           <span style={{ background: '#F4A340', color: 'white', padding: '3px 14px', borderRadius: 20, fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap' }}>
             🔥 {PRECIO} pago único
@@ -199,10 +233,10 @@ export default async function Home() {
               </a>
               <a href="/login" style={{ textDecoration: 'none', color: '#6b7280', fontSize: 14, fontWeight: 500 }}>Área de miembros</a>
             </div>
-            <a href="/login" style={{ textDecoration: 'none', color: '#6b7280', fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap' }}>
+            <a href="/login" className="np-ya-soy" style={{ textDecoration: 'none', color: '#6b7280', fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap' }}>
               Ya soy miembro →
             </a>
-            <a href={CHECKOUT_URL}
+            <a href={CHECKOUT_URL} className="np-header-cta"
               style={{ background: 'linear-gradient(135deg,#F4A340,#E8821A)', color: 'white', padding: '10px 22px', borderRadius: 50, fontWeight: 700, fontSize: 15, textDecoration: 'none', whiteSpace: 'nowrap' }}>
               Acceder ahora
             </a>
@@ -219,7 +253,7 @@ export default async function Home() {
               <HeroImage />
             </div>
             {/* Texto */}
-            <div>
+            <div className="np-hero-text">
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'white', borderRadius: 50, padding: '6px 18px', boxShadow: '0 4px 16px rgba(0,0,0,.08)', marginBottom: 20 }}>
                 <span style={{ fontSize: 16 }}>🥄</span>
                 <span style={{ fontSize: 12, fontWeight: 700, color: '#0d9488', letterSpacing: '.5px' }}>MÉTODO NUTRIPEQUES · PLATAFORMA OFICIAL</span>
@@ -250,11 +284,11 @@ export default async function Home() {
                   </div>
                 ))}
               </div>
-              <a href={CHECKOUT_URL}
+              <a href={CHECKOUT_URL} className="np-hero-cta"
                 style={{ display: 'inline-block', background: 'linear-gradient(135deg,#F4A340,#E8821A)', color: 'white', padding: '18px 40px', borderRadius: 50, fontFamily: "'Fredoka',sans-serif", fontSize: 20, fontWeight: 700, textDecoration: 'none', boxShadow: '0 8px 32px rgba(232,130,26,.4)', letterSpacing: '.3px' }}>
-                Quiero acceso ahora — {PRECIO}
+                Quiero acceso — {PRECIO}
               </a>
-              <p style={{ margin: '12px 0 0', fontSize: 13, color: '#9ca3af' }}>Precio normal {PRECIO_TACHADO} · Pago único · Acceso de por vida</p>
+              <p className="np-hero-cta-note" style={{ margin: '12px 0 0', fontSize: 13, color: '#9ca3af' }}>Precio normal {PRECIO_TACHADO} · Pago único · Acceso de por vida</p>
             </div>
           </div>
         </div>
@@ -274,7 +308,7 @@ export default async function Home() {
           </p>
 
           {/* Plan completo — destacado PRIMERO */}
-          <div style={{ background: 'linear-gradient(135deg,#1f2937,#0f766e)', borderRadius: 28, padding: '44px 44px', color: 'white', display: 'grid', gridTemplateColumns: '1fr auto', gap: 32, alignItems: 'center', boxShadow: '0 12px 48px rgba(13,148,136,.25)', position: 'relative', overflow: 'hidden', marginBottom: 28 }}>
+          <div className="np-plan-card" style={{ background: 'linear-gradient(135deg,#1f2937,#0f766e)', borderRadius: 28, padding: '44px 44px', color: 'white', display: 'grid', gridTemplateColumns: '1fr auto', gap: 32, alignItems: 'center', boxShadow: '0 12px 48px rgba(13,148,136,.25)', position: 'relative', overflow: 'hidden', marginBottom: 28 }}>
             <div style={{ position: 'absolute', right: -30, top: -30, fontSize: 160, opacity: .06, lineHeight: 1 }}>🌟</div>
             <div style={{ position: 'relative' }}>
               <div style={{ display: 'inline-block', background: 'linear-gradient(135deg,#F4A340,#E8821A)', borderRadius: 50, padding: '5px 18px', fontSize: 12, fontWeight: 700, letterSpacing: 0.5, marginBottom: 16 }}>
@@ -292,9 +326,9 @@ export default async function Home() {
                 ))}
               </div>
             </div>
-            <div style={{ textAlign: 'center', flexShrink: 0, position: 'relative' }}>
+            <div className="np-plan-precio" style={{ textAlign: 'center', flexShrink: 0, position: 'relative' }}>
               <div style={{ fontSize: 14, opacity: .5, textDecoration: 'line-through', marginBottom: 2 }}>{PRECIO_TACHADO}</div>
-              <div style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 'clamp(44px,6vw,64px)', fontWeight: 700, color: '#F4A340', lineHeight: 1 }}>{PRECIO}</div>
+              <div style={{ fontFamily: "'Fredoka',sans-serif", fontSize: 'clamp(40px,6vw,64px)', fontWeight: 700, color: '#F4A340', lineHeight: 1 }}>{PRECIO}</div>
               <div style={{ fontSize: 13, opacity: .6, marginBottom: 20 }}>{NOTA_MONEDA}</div>
               <a href="/api/checkout?producto=metodo_nutripeques" style={{ display: 'block', background: 'linear-gradient(135deg,#F4A340,#E8821A)', color: 'white', padding: '16px 28px', borderRadius: 50, fontFamily: "'Fredoka',sans-serif", fontSize: 18, fontWeight: 700, textDecoration: 'none', boxShadow: '0 6px 24px rgba(244,163,64,.4)', whiteSpace: 'nowrap' }}>
                 🛒 Quiero todo →
