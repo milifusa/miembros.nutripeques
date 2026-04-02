@@ -148,7 +148,7 @@ export default async function Home() {
           .np-nav { display: none !important; }
           .np-urgency-extra { display: none !important; }
           .np-header-title { display: none !important; }
-          .np-ya-soy { display: none !important; }
+          .np-ya-soy { font-size: 12px !important; }
           .np-header { height: 56px !important; top: 34px !important; }
           .np-header img { height: 42px !important; }
           .np-header-cta { font-size: 13px !important; padding: 8px 16px !important; }
