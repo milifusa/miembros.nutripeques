@@ -11,7 +11,16 @@ type Recurso = {
   pdf_url: string
   imagen_url: string | null
   orden: number
+  producto_id: string | null
 }
+
+const PRODUCTOS_OPCIONES = [
+  { id: null,                 label: '🌟 Plan completo (todos los miembros)',       bg: '#F0FDF4', color: '#15803d' },
+  { id: 'guia_ac',            label: '🥣 Guía inicio AC — 4 semanas',              bg: '#F0FDFA', color: '#0d9488' },
+  { id: 'menu_anemia',        label: '🩸 Menú anti anemia completo',               bg: '#FFF1F2', color: '#e11d48' },
+  { id: 'recetario_50',       label: '🍳 Recetario 50 recetas',                    bg: '#FEF3C7', color: '#D97706' },
+  { id: 'metodo_nutripeques', label: '🌟 NutriPeques completo (exclusivo $299)',    bg: '#FFF7ED', color: '#E8821A' },
+]
 
 const ICONOS_SUGERIDOS = ['📄','📚','🥕','🍎','🍼','🥗','🩺','⚠️','🤲','🍽️','🩸','🐟','🥞','🍲','📋','🌿','💡','🎯','📝','🔑']
 
@@ -33,6 +42,7 @@ export default function RecursosManager() {
   const [rTitulo, setRTitulo] = useState('')
   const [rDescripcion, setRDescripcion] = useState('')
   const [rOrden, setROrden] = useState(0)
+  const [rProductoId, setRProductoId] = useState<string | null>(null)
   const [pdfFile, setPdfFile] = useState<File | null>(null)
   const [imagenFile, setImagenFile] = useState<File | null>(null)
   const [pdfPreview, setPdfPreview] = useState('')
@@ -130,6 +140,7 @@ export default function RecursosManager() {
           pdf_url,
           imagen_url,
           orden: rOrden,
+          producto_id: rProductoId,
         }),
       })
       if (res.ok) {
@@ -144,7 +155,7 @@ export default function RecursosManager() {
   }
 
   function resetRecursoForm() {
-    setRTitulo(''); setRDescripcion(''); setROrden(0)
+    setRTitulo(''); setRDescripcion(''); setROrden(0); setRProductoId(null)
     setPdfFile(null); setImagenFile(null); setPdfPreview(''); setImagenPreview('')
     setShowRecursoForm(false)
     if (pdfInputRef.current) pdfInputRef.current.value = ''
@@ -307,6 +318,32 @@ export default function RecursosManager() {
                   style={{ ...inputStyle, resize: 'vertical' }}
                 />
               </div>
+              <div style={{ marginBottom: 14 }}>
+                <label style={labelStyle}>🔑 ¿Quién puede ver este recurso? *</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {PRODUCTOS_OPCIONES.map(p => (
+                    <button
+                      key={String(p.id)}
+                      type="button"
+                      onClick={() => setRProductoId(p.id)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 10,
+                        padding: '9px 14px', borderRadius: 10, textAlign: 'left',
+                        border: `2px solid ${rProductoId === p.id ? p.color : '#e5e7eb'}`,
+                        background: rProductoId === p.id ? p.bg : 'white',
+                        cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 600,
+                        color: rProductoId === p.id ? p.color : '#6b7280',
+                        transition: 'all .12s',
+                      }}
+                    >
+                      <span style={{ fontSize: 16, flexShrink: 0 }}>
+                        {rProductoId === p.id ? '●' : '○'}
+                      </span>
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
                 <div>
                   <label style={labelStyle}>📄 Archivo PDF *</label>
@@ -370,12 +407,24 @@ export default function RecursosManager() {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ margin: '0 0 2px', fontWeight: 600, color: '#1f2937', fontSize: 15 }}>{r.titulo}</p>
                   {r.descripcion && <p style={{ margin: '0 0 6px', color: '#6b7280', fontSize: 13 }}>{r.descripcion}</p>}
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                     <a href={r.pdf_url} target="_blank" rel="noreferrer"
                       style={{ background: '#DBEAFE', color: '#1d4ed8', fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 8, textDecoration: 'none' }}
                     >
                       📥 Ver PDF
                     </a>
+                    {(() => {
+                      const p = PRODUCTOS_OPCIONES.find(o => o.id === r.producto_id)
+                      return p ? (
+                        <span style={{ background: p.bg, color: p.color, fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
+                          {p.label.split(' ').slice(0, 2).join(' ')}
+                        </span>
+                      ) : (
+                        <span style={{ background: '#f3f4f6', color: '#9ca3af', fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 8 }}>
+                          Sin producto
+                        </span>
+                      )
+                    })()}
                     <span style={{ color: '#d1d5db', fontSize: 12 }}>orden: {r.orden}</span>
                   </div>
                 </div>
